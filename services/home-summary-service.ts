@@ -1,0 +1,350 @@
+import { getAtividadeUnidadesByAtividade } from '@/services/atividade-unidade-service';
+import { getAcademias } from '@/services/academias-service';
+import {
+  enrichListaEsperaWithAcademias,
+  getListaEsperaForUser,
+} from '@/services/lista-espera-service';
+import { getRelatorioListaEsperaByAcademia } from '@/services/relatorio-lista-espera-service';
+import { filterActiveFutureReservas } from '@/services/reservas-service';
+import { getReservasUsuarioForUser } from '@/services/reserva-horario-flow-service';
+import { getUserLocalAssociations } from '@/services/user-local-service';
+import type { Academia } from '@/types/academia';
+import type { ListaEsperaSummary, ReservaParticipanteSummary, ReservaSummary } from '@/types/home-summary';
+import type { JogoParticipante } from '@/types/jogo';
+import type { ReservaUsuario } from '@/types/reserva-usuario';
+import type { ListaEsperaRegistro } from '@/types/lista-espera';
+import { buildJogoParticipantesView } from '@/utils/jogo-participantes';
+import {
+  getMinutosLimiteRegistroAdversario,
+  isAdversarioPendente,
+} from '@/utils/reserva-adversario';
+import { normalizePhotoUrl } from '@/utils/user-photo';
+import { filterListaEsperaVisivelUsuario } from '@/utils/lista-espera-visivel';
+import { buildListaEsperaPosicaoMap } from '@/utils/lista-espera-posicao';
+import {
+  buildAtividadesByIdMapForReservas,
+  resolveReservaAtividadeNome,
+} from '@/utils/reserva-atividade';
+import type { Atividade } from '@/types/atividade';
+
+const LISTA_ESPERA_ERROR_MESSAGE = 'Não foi possível carregar sua lista de espera.';
+const RESERVAS_ERROR_MESSAGE = 'Não foi possível carregar suas reservas.';
+
+export type HomeSummaryFetchResult = {
+  reservas: ReservaSummary[];
+  listasEspera: ListaEsperaSummary[];
+  reservasError: string | null;
+  listaEsperaError: string | null;
+};
+
+function getAcademiaName(academiasId: number, academiasById: Map<number, Academia>): string {
+  return academiasById.get(academiasId)?.nome ?? `Local #${academiasId}`;
+}
+
+function getModalidadeLabel(reserva: Pick<ReservaUsuario, 'jogoDuplas'>): string | null {
+  if (reserva.jogoDuplas) {
+    return 'Duplas';
+  }
+
+  return 'Simples';
+}
+
+function sortReservasByDataAtividade<T extends { dataAtividade: number }>(entries: T[]): T[] {
+  return [...entries].sort((a, b) => a.dataAtividade - b.dataAtividade);
+}
+
+async function buildUnidadesLabelByIdForReservas(
+  reservas: ReservaUsuario[],
+  authToken: string,
+): Promise<Map<number, string>> {
+  const atividadesIds = [
+    ...new Set(
+      reservas
+        .filter((reserva) => (reserva.atividadeunidade_id ?? 0) > 0)
+        .map((reserva) => reserva.atividades_id)
+        .filter((id) => id > 0),
+    ),
+  ];
+
+  if (atividadesIds.length === 0) {
+    return new Map();
+  }
+
+  const unidadesLists = await Promise.all(
+    atividadesIds.map(async (atividadesId) => {
+      try {
+        return await getAtividadeUnidadesByAtividade(atividadesId, authToken);
+      } catch {
+        return [];
+      }
+    }),
+  );
+
+  const unidadesById = new Map<number, string>();
+
+  for (const unidades of unidadesLists) {
+    for (const unidade of unidades) {
+      unidadesById.set(unidade.id, unidade.unidade);
+    }
+  }
+
+  return unidadesById;
+}
+
+function mapReservaParticipante(
+  users_id: number,
+  nome: string | null | undefined,
+  foto: string | null | undefined,
+): ReservaParticipanteSummary | null {
+  if (users_id <= 0 || !nome?.trim()) {
+    return null;
+  }
+
+  return {
+    users_id,
+    nome: nome.trim(),
+    foto: normalizePhotoUrl(foto),
+  };
+}
+
+function collectConvidados(reserva: ReservaUsuario): ReservaParticipanteSummary[] {
+  const view = buildJogoParticipantesView(reserva as unknown as Parameters<typeof buildJogoParticipantesView>[0]);
+
+  if (!reserva.jogoDuplas) {
+    const adversario = view.dupla2[0];
+
+    if (!adversario || reserva.adversario_id <= 0) {
+      return [];
+    }
+
+    return [
+      {
+        users_id: reserva.adversario_id,
+        nome: adversario.nome,
+        foto: adversario.foto,
+      },
+    ];
+  }
+
+  const candidatos: Array<{ id: number; participante: JogoParticipante | undefined }> = [
+    { id: reserva.adversario_id, participante: view.dupla2[0] },
+    { id: reserva.parceiro1_id, participante: view.dupla1[1] },
+    { id: reserva.parceiro2_id, participante: view.dupla2[1] },
+  ];
+
+  return candidatos
+    .filter(
+      (item): item is { id: number; participante: JogoParticipante } =>
+        item.id > 0 && item.participante !== undefined,
+    )
+    .map(({ id, participante }) => ({
+      users_id: id,
+      nome: participante.nome,
+      foto: participante.foto,
+    }));
+}
+
+export function mapReservaUsuarioToReservaSummary(
+  reserva: ReservaUsuario,
+  academiasById: Map<number, Academia>,
+  atividadesById: Map<number, Atividade> = new Map(),
+  unidadesById: Map<number, string> = new Map(),
+): ReservaSummary {
+  const participantesView = buildJogoParticipantesView(
+    reserva as unknown as Parameters<typeof buildJogoParticipantesView>[0],
+  );
+  const adversario = participantesView.dupla2[0] ?? null;
+  const responsavel = participantesView.dupla1[0] ?? null;
+  const adversarioPendente = isAdversarioPendente(reserva);
+  const convidados = collectConvidados(reserva);
+  const unidadeId =
+    reserva.atividadeunidade_id != null && reserva.atividadeunidade_id > 0
+      ? reserva.atividadeunidade_id
+      : null;
+  const unidadeNome =
+    (unidadeId != null ? unidadesById.get(unidadeId)?.trim() : null) ||
+    reserva.unidadeNome?.trim() ||
+    null;
+
+  return {
+    id: reserva.id,
+    reservasdamha_id: reserva.reservasdamha_id,
+    mapadiariodamha_id: reserva.mapadiariodamha_id,
+    mapadiario_id: reserva.mapadiario_id,
+    dataAtividade: reserva.dataAtividade,
+    quadra: reserva.quadra,
+    academias_id: reserva.academias_id,
+    atividades_id: reserva.atividades_id,
+    semana: reserva.semana,
+    localNome: getAcademiaName(reserva.academias_id, academiasById),
+    atividade: resolveReservaAtividadeNome(reserva, atividadesById),
+    modalidade: resolveReservaAtividadeNome(reserva, atividadesById) ? null : getModalidadeLabel(reserva),
+    atividadeunidade_id: unidadeId,
+    unidadeNome,
+    cancelado: reserva.cancelado,
+    users_id: reserva.users_id,
+    responsavel_id: reserva.responsavel_id,
+    jogoDuplas: reserva.jogoDuplas,
+    clubeJogoSimples: !reserva.jogoDuplas,
+    clubeJogoDuplas: reserva.jogoDuplas === true,
+    adversarioPendente,
+    minutosLimiteRegistro: getMinutosLimiteRegistroAdversario(
+      reserva.created_at,
+      reserva.cancelamentoAutomatico,
+    ),
+    limiteCancelamento: reserva.limiteCancelamento,
+    created_at: reserva.created_at > 0 ? reserva.created_at : 0,
+    responsavel: mapReservaParticipante(
+      reserva.responsavel_id,
+      responsavel?.nome ?? reserva.responsavel?.nome,
+      responsavel?.foto ?? reserva.responsavel?.foto,
+    ),
+    adversario: adversarioPendente ? null : adversario
+      ? {
+          users_id: reserva.adversario_id,
+          nome: adversario.nome,
+          foto: adversario.foto,
+        }
+      : null,
+    convidados,
+  };
+}
+
+export function mapRegistroToListaEsperaSummary(
+  registro: ListaEsperaRegistro,
+  academiasById: Map<number, Academia>,
+  posicao: number | null = null,
+  totalNaLista: number | null = null,
+): ListaEsperaSummary {
+  return {
+    id: registro.id,
+    dataAtividade: registro.dataAtividade!,
+    academias_id: registro.academias_id,
+    localNome: getAcademiaName(registro.academias_id, academiasById),
+    atividade: registro.atividade,
+    avisado: registro.avisado,
+    posicao,
+    totalNaLista,
+  };
+}
+
+export function filterActiveFutureListaEspera(
+  registros: ListaEsperaRegistro[],
+  referenceDate: Date = new Date(),
+): ListaEsperaRegistro[] {
+  return filterListaEsperaVisivelUsuario(registros, referenceDate);
+}
+
+export function sortListaEsperaByNearest<T extends { dataAtividade: number }>(entries: T[]): T[] {
+  return [...entries].sort((a, b) => a.dataAtividade - b.dataAtividade);
+}
+
+export function pickNearestReserva(reservas: ReservaSummary[]): ReservaSummary | null {
+  if (reservas.length === 0) {
+    return null;
+  }
+
+  return sortReservasByDataAtividade([...reservas])[0];
+}
+
+export function pickNearestListaEspera(
+  listasEspera: ListaEsperaSummary[],
+): ListaEsperaSummary | null {
+  if (listasEspera.length === 0) {
+    return null;
+  }
+
+  return sortListaEsperaByNearest(listasEspera)[0];
+}
+
+export async function fetchHomeSummary(
+  userId: number,
+  authToken: string,
+  academiasId: number,
+): Promise<HomeSummaryFetchResult> {
+  console.log('Carregando resumo da Home');
+
+  let reservasError: string | null = null;
+  let listaEsperaError: string | null = null;
+  let reservas: ReservaSummary[] = [];
+  let listasEspera: ListaEsperaSummary[] = [];
+
+  const [associationsResult, clubsResult] = await Promise.allSettled([
+    getUserLocalAssociations(userId),
+    getAcademias(),
+  ]);
+
+  const academias =
+    clubsResult.status === 'fulfilled' ? clubsResult.value : ([] as Academia[]);
+  const academiasById = new Map(academias.map((academia) => [academia.id, academia]));
+
+  try {
+    const reservasUsuario = await getReservasUsuarioForUser(userId, authToken, academiasId);
+    const activeReservas = filterActiveFutureReservas(reservasUsuario);
+    const needsUnidadeLabels = activeReservas.some(
+      (reserva) =>
+        (reserva.atividadeunidade_id ?? 0) > 0 && !reserva.unidadeNome?.trim(),
+    );
+    const [atividadesById, unidadesById] = await Promise.all([
+      buildAtividadesByIdMapForReservas(activeReservas),
+      needsUnidadeLabels
+        ? buildUnidadesLabelByIdForReservas(activeReservas, authToken)
+        : Promise.resolve(new Map<number, string>()),
+    ]);
+    reservas = sortReservasByDataAtividade(
+      activeReservas.map((reserva) =>
+        mapReservaUsuarioToReservaSummary(reserva, academiasById, atividadesById, unidadesById),
+      ),
+    );
+  } catch {
+    reservasError = RESERVAS_ERROR_MESSAGE;
+  }
+
+  if (associationsResult.status === 'fulfilled') {
+    const clubIds = associationsResult.value.map((association) => association.academias_id);
+
+    try {
+      const entries = await getListaEsperaForUser(userId, clubIds, authToken);
+      const activeEntries = filterActiveFutureListaEspera(entries);
+      const uniqueAcademiaIds = [...new Set(activeEntries.map((entry) => entry.academias_id))];
+      const academiaResults = await Promise.allSettled(
+        uniqueAcademiaIds.map((academiasId) =>
+          getRelatorioListaEsperaByAcademia(academiasId, authToken),
+        ),
+      );
+      const allEntries = academiaResults.flatMap((result) =>
+        result.status === 'fulfilled' ? result.value : [],
+      );
+      const posicaoMap = buildListaEsperaPosicaoMap(activeEntries, allEntries);
+      const enriched = enrichListaEsperaWithAcademias(activeEntries, academias);
+      const sorted = sortListaEsperaByNearest(
+        enriched.map((item) => {
+          const posicaoInfo = posicaoMap.get(item.registro.id);
+
+          return mapRegistroToListaEsperaSummary(
+            item.registro,
+            academiasById,
+            posicaoInfo?.posicao ?? null,
+            posicaoInfo?.totalNaLista ?? null,
+          );
+        }),
+      );
+      listasEspera = sorted;
+    } catch {
+      listaEsperaError = LISTA_ESPERA_ERROR_MESSAGE;
+    }
+  } else {
+    listaEsperaError = LISTA_ESPERA_ERROR_MESSAGE;
+  }
+
+  console.log('Reservas encontradas:', reservas.length);
+  console.log('Listas de espera encontradas:', listasEspera.length);
+  console.log('Resumo da Home atualizado');
+
+  return {
+    reservas,
+    listasEspera,
+    reservasError,
+    listaEsperaError,
+  };
+}

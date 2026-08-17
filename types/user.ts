@@ -1,0 +1,24 @@
+export type User = {
+  id: number;
+  nome: string;
+  email: string;
+  academias_id: number;
+  telefone: string;
+  telefoneLimpo: string;
+  telefoneCorrigido: string;
+  telefoneConfirmado: string;
+  foto: string;
+  administrador: boolean;
+  gestor: boolean;
+  professor?: boolean;
+  aprovado: boolean;
+  bloqueado: boolean;
+  cienteCancelamento: boolean;
+  matricula: string;
+  complemento: string;
+  excluido?: boolean;
+  localPrioritario?: number | null;
+  telefoneIncorreto?: boolean;
+  fotoUpload?: unknown;
+  ultimaPublicidadeData?: number | null;
+};
