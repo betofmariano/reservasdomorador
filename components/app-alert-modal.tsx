@@ -1,38 +1,42 @@
-import { Modal, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import { APP_DISPLAY_NAME } from '@/constants/app-branding';
+import { MATCHPOINT_COLORS } from '@/constants/theme';
 import { WEB_MAX_CONTENT_WIDTH } from '@/constants/web-layout';
 
-type OkMessageModalProps = {
+type AppAlertModalProps = {
   visible: boolean;
-  title: string;
   message: string;
+  title?: string;
+  okLabel?: string;
   onClose: () => void;
 };
 
-const COLORS = {
-  navy: '#1B2B4B',
-  blue: '#2456A8',
-  white: '#FFFFFF',
-};
-
-export function OkMessageModal({ visible, title, message, onClose }: OkMessageModalProps) {
+export function AppAlertModal({
+  visible,
+  message,
+  title,
+  okLabel = 'OK',
+  onClose,
+}: AppAlertModalProps) {
   const { width } = useWindowDimensions();
   const isWide = width >= WEB_MAX_CONTENT_WIDTH;
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <View style={[styles.card, isWide && styles.cardWide]}>
+      <Pressable style={styles.overlay} onPress={onClose}>
+        <Pressable
+          style={[styles.card, isWide && styles.cardWide]}
+          onPress={(event) => event.stopPropagation()}>
           <Text style={styles.appName}>{APP_DISPLAY_NAME}</Text>
-          <Text style={styles.title}>{title}</Text>
+          {title ? <Text style={styles.title}>{title}</Text> : null}
           <Text style={styles.message}>{message}</Text>
 
-          <Pressable style={styles.okButton} onPress={onClose} accessibilityRole="button">
-            <Text style={styles.okButtonText}>OK</Text>
+          <Pressable style={styles.okButton} onPress={onClose}>
+            <Text style={styles.okButtonText}>{okLabel}</Text>
           </Pressable>
-        </View>
-      </View>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 }
@@ -40,7 +44,7 @@ export function OkMessageModal({ visible, title, message, onClose }: OkMessageMo
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    backgroundColor: MATCHPOINT_COLORS.overlay,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
@@ -48,7 +52,7 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 400,
-    backgroundColor: COLORS.white,
+    backgroundColor: MATCHPOINT_COLORS.white,
     borderRadius: 14,
     padding: 20,
   },
@@ -58,20 +62,20 @@ const styles = StyleSheet.create({
   appName: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.blue,
+    color: MATCHPOINT_COLORS.blue,
     textAlign: 'center',
     marginBottom: 8,
   },
   title: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
-    color: COLORS.navy,
+    color: MATCHPOINT_COLORS.navy,
     textAlign: 'center',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   message: {
     fontSize: 15,
-    color: COLORS.navy,
+    color: MATCHPOINT_COLORS.navy,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 20,
@@ -79,13 +83,13 @@ const styles = StyleSheet.create({
   okButton: {
     minHeight: 44,
     borderRadius: 10,
-    backgroundColor: COLORS.blue,
+    backgroundColor: MATCHPOINT_COLORS.blue,
     alignItems: 'center',
     justifyContent: 'center',
   },
   okButtonText: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.white,
+    color: MATCHPOINT_COLORS.white,
   },
 });

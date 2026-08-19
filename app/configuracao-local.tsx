@@ -1,7 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -18,6 +17,7 @@ import { ClubSelector } from '@/components/club-selector';
 import { ScreenHeader, ScreenHeaderDivider } from '@/components/screen-header';
 import { WebScreenContainer } from '@/components/web-screen-container';
 import { WEB_MAX_CONTENT_WIDTH } from '@/constants/web-layout';
+import { useAppDialog } from '@/contexts/app-dialog-context';
 import { useAppToast } from '@/contexts/app-toast-context';
 import { useAuth } from '@/contexts/auth-context';
 import { useConfiguracaoLocalScreen } from '@/hooks/use-configuracao-local-screen';
@@ -34,6 +34,7 @@ const COLORS = {
 export default function ConfiguracaoLocalScreen() {
   const router = useRouter();
   const { showToast } = useAppToast();
+  const { confirm } = useAppDialog();
   const { user, authToken, isLoading: isAuthLoading, signOut } = useAuth();
 
   const handleUnauthorized = useCallback(async () => {
@@ -109,7 +110,7 @@ export default function ConfiguracaoLocalScreen() {
     router.replace('/');
   }
 
-  function handleCancel() {
+  async function handleCancel() {
     if (isSaving) {
       return;
     }
@@ -119,20 +120,17 @@ export default function ConfiguracaoLocalScreen() {
       return;
     }
 
-    const confirmExit = () => navigateBack();
+    const confirmed = await confirm({
+      title: LOCAL_CONFIG_MESSAGES.unsavedTitle,
+      message: LOCAL_CONFIG_MESSAGES.unsavedMessage,
+      cancelLabel: 'Continuar editando',
+      confirmLabel: 'Sair',
+      destructive: true,
+    });
 
-    if (Platform.OS === 'web') {
-      if (typeof window !== 'undefined' && window.confirm(LOCAL_CONFIG_MESSAGES.unsavedMessage)) {
-        confirmExit();
-      }
-
-      return;
+    if (confirmed) {
+      navigateBack();
     }
-
-    Alert.alert(LOCAL_CONFIG_MESSAGES.unsavedTitle, LOCAL_CONFIG_MESSAGES.unsavedMessage, [
-      { text: 'Continuar editando', style: 'cancel' },
-      { text: 'Sair', style: 'destructive', onPress: confirmExit },
-    ]);
   }
 
   async function handleSubmit() {

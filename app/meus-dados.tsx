@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -18,6 +17,7 @@ import { ScreenHeader, ScreenHeaderDivider } from '@/components/screen-header';
 import { WebScreenContainer } from '@/components/web-screen-container';
 import { WEB_MAX_CONTENT_WIDTH } from '@/constants/web-layout';
 import { MATCHPOINT_COLORS } from '@/constants/theme';
+import { useAppDialog } from '@/contexts/app-dialog-context';
 import { useAppToast } from '@/contexts/app-toast-context';
 import { useAuth } from '@/contexts/auth-context';
 import { useUserContext } from '@/contexts/user-context';
@@ -32,6 +32,7 @@ const COLORS = {
 export default function MeusDadosScreen() {
   const router = useRouter();
   const { showToast } = useAppToast();
+  const { confirm } = useAppDialog();
   const { user, authToken, isLoading: isAuthLoading } = useAuth();
   const { isLoading: isUserContextLoading } = useUserContext();
 
@@ -66,7 +67,7 @@ export default function MeusDadosScreen() {
     router.replace('/');
   }
 
-  function handleCancel() {
+  async function handleCancel() {
     if (isSubmitting) {
       return;
     }
@@ -76,20 +77,17 @@ export default function MeusDadosScreen() {
       return;
     }
 
-    const confirmExit = () => navigateBack();
+    const confirmed = await confirm({
+      title: MEUS_DADOS_MESSAGES.unsavedTitle,
+      message: MEUS_DADOS_MESSAGES.unsavedMessage,
+      cancelLabel: 'Continuar editando',
+      confirmLabel: 'Sair sem enviar',
+      destructive: true,
+    });
 
-    if (Platform.OS === 'web') {
-      if (typeof window !== 'undefined' && window.confirm(MEUS_DADOS_MESSAGES.unsavedMessage)) {
-        confirmExit();
-      }
-
-      return;
+    if (confirmed) {
+      navigateBack();
     }
-
-    Alert.alert(MEUS_DADOS_MESSAGES.unsavedTitle, MEUS_DADOS_MESSAGES.unsavedMessage, [
-      { text: 'Continuar editando', style: 'cancel' },
-      { text: 'Sair sem enviar', style: 'destructive', onPress: confirmExit },
-    ]);
   }
 
   async function handleConfirm() {

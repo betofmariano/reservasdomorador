@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Image,
   Modal,
   Pressable,
@@ -19,6 +18,7 @@ import {
   submitSolicitacaoFotoAlteracao,
 } from '@/services/solicitar-foto-alteracao-service';
 import type { PhotoAsset } from '@/types/user-photo';
+import { appAlert } from '@/utils/app-dialog-bridge';
 import { MEUS_DADOS_MESSAGES } from '@/utils/meus-dados';
 import {
   CameraLaunchError,
@@ -45,12 +45,12 @@ const COLORS = {
 
 function handlePhotoPickerError(error: unknown) {
   if (error instanceof CameraPermissionError || error instanceof GalleryPermissionError) {
-    Alert.alert('Permissão necessária', error.message);
+    void appAlert({ title: 'Permissão necessária', message: error.message });
     return;
   }
 
   if (error instanceof CameraLaunchError || error instanceof GalleryLaunchError) {
-    Alert.alert('Erro', error.message);
+    void appAlert({ title: 'Erro', message: error.message });
   }
 }
 
@@ -73,7 +73,10 @@ export function ChangePhotoModal({ visible, onClose }: ChangePhotoModalProps) {
 
   function ensureUserIdentified(): boolean {
     if (!user?.id) {
-      Alert.alert('Erro', 'Não foi possível identificar o usuário.');
+      void appAlert({
+        title: 'Erro',
+        message: 'Não foi possível identificar o usuário.',
+      });
       return false;
     }
 
@@ -120,7 +123,10 @@ export function ChangePhotoModal({ visible, onClose }: ChangePhotoModalProps) {
     }
 
     if (!user?.id || !authToken) {
-      Alert.alert('Erro', 'Não foi possível identificar o usuário.');
+      void appAlert({
+        title: 'Erro',
+        message: 'Não foi possível identificar o usuário.',
+      });
       return;
     }
 
@@ -140,7 +146,7 @@ export function ChangePhotoModal({ visible, onClose }: ChangePhotoModalProps) {
       patchUser({ foto: photoUrl });
       setStep('success');
     } catch (error) {
-      Alert.alert('Erro', getApiErrorMessage(error));
+      void appAlert({ title: 'Erro', message: getApiErrorMessage(error) });
     } finally {
       setIsSaving(false);
     }

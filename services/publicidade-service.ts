@@ -107,6 +107,23 @@ export async function registrarMostrarPubliXano(
   );
 }
 
+export async function getMostrarPubliXano(params: {
+  dataInicio: number;
+  dataFinal: number;
+}): Promise<MostrarPubliXanoResponse[]> {
+  const query = new URLSearchParams({
+    dataInicio: String(params.dataInicio),
+    dataFinal: String(params.dataFinal),
+  });
+
+  const data = await getRequestFromBaseUrl<unknown>(
+    XANO_PUBLICIDADE_API_BASE_URL,
+    `${PUBLICIDADE_ENDPOINTS.mostrarpublixano}?${query.toString()}`,
+  );
+
+  return Array.isArray(data) ? (data as MostrarPubliXanoResponse[]) : [];
+}
+
 export async function getPatrocinioUltimoVisto(
   payload: PatrocinioUltimoVistoPayload,
 ): Promise<Patrocinador> {

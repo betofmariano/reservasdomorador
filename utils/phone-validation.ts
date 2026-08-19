@@ -1,7 +1,6 @@
-import { Alert } from 'react-native';
-
 import { ASSOCIACAO_LOCAL_LABELS } from '@/constants/associacao-local-labels';
 import { isValidNumericPassword } from '@/constants/auth';
+import { appAlert, appConfirm } from '@/utils/app-dialog-bridge';
 import { validatePersonName } from '@/utils/meus-dados';
 import { BRAZILIAN_MOBILE_PHONE_DIGITS, stripPhoneDigits } from '@/utils/phone-mask';
 
@@ -37,11 +36,7 @@ export function phoneThirdDigitIsNotMobileNine(digits: string): boolean {
 }
 
 function showBlockingAlert(title: string, message: string): Promise<boolean> {
-  return new Promise((resolve) => {
-    Alert.alert(title, message, [{ text: 'OK', onPress: () => resolve(false) }], {
-      cancelable: false,
-    });
-  });
+  return appAlert({ title, message }).then(() => false);
 }
 
 export function confirmPhoneWithBrazilDdiPrefix(digits: string): Promise<boolean> {
@@ -49,16 +44,11 @@ export function confirmPhoneWithBrazilDdiPrefix(digits: string): Promise<boolean
     return Promise.resolve(true);
   }
 
-  return new Promise((resolve) => {
-    Alert.alert(
-      PHONE_VALIDATION_MESSAGES.brazilDdiConfirmTitle,
-      PHONE_VALIDATION_MESSAGES.brazilDdiConfirmMessage,
-      [
-        { text: 'Não', style: 'cancel', onPress: () => resolve(false) },
-        { text: 'Sim, confirmar', onPress: () => resolve(true) },
-      ],
-      { cancelable: false },
-    );
+  return appConfirm({
+    title: PHONE_VALIDATION_MESSAGES.brazilDdiConfirmTitle,
+    message: PHONE_VALIDATION_MESSAGES.brazilDdiConfirmMessage,
+    cancelLabel: 'Não',
+    confirmLabel: 'Sim, confirmar',
   });
 }
 
@@ -84,17 +74,17 @@ export async function confirmPhoneSubmitChecks(phone: string): Promise<boolean> 
 }
 
 export function alertMatriculaRequired(): void {
-  Alert.alert(
-    SIGNUP_VALIDATION_MESSAGES.matriculaRequiredTitle,
-    SIGNUP_VALIDATION_MESSAGES.matriculaRequiredMessage,
-  );
+  void appAlert({
+    title: SIGNUP_VALIDATION_MESSAGES.matriculaRequiredTitle,
+    message: SIGNUP_VALIDATION_MESSAGES.matriculaRequiredMessage,
+  });
 }
 
 export function alertComplementoRequired(): void {
-  Alert.alert(
-    SIGNUP_VALIDATION_MESSAGES.complementoRequiredTitle,
-    SIGNUP_VALIDATION_MESSAGES.complementoRequiredMessage,
-  );
+  void appAlert({
+    title: SIGNUP_VALIDATION_MESSAGES.complementoRequiredTitle,
+    message: SIGNUP_VALIDATION_MESSAGES.complementoRequiredMessage,
+  });
 }
 
 export const SIGNUP_VALIDATION_MESSAGES = {

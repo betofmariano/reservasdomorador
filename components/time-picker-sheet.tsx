@@ -23,6 +23,7 @@ type TimePickerSheetProps = {
   value: Date;
   minuteInterval?: 1 | 2 | 3 | 4 | 5 | 6 | 10 | 12 | 15 | 20 | 30 | 60;
   hourRange?: HourRange;
+  includeEndOfDay?: boolean;
   onConfirm: (time: Date) => void;
   onClose: () => void;
   presentation?: 'modal' | 'overlay';
@@ -31,7 +32,11 @@ type TimePickerSheetProps = {
 
 const WEB_TIME_DAY_MINUTES = 24 * 60;
 
-function buildWebTimeOptions(interval: number, hourRange?: HourRange): Date[] {
+function buildWebTimeOptions(
+  interval: number,
+  hourRange?: HourRange,
+  includeEndOfDay = false,
+): Date[] {
   const options: Date[] = [];
   const base = new Date();
   base.setHours(0, 0, 0, 0);
@@ -45,6 +50,15 @@ function buildWebTimeOptions(interval: number, hourRange?: HourRange): Date[] {
     options.push(slot);
   }
 
+  if (includeEndOfDay) {
+    const last = options[options.length - 1];
+    if (!last || last.getHours() !== 23 || last.getMinutes() !== 59) {
+      const endOfDay = new Date(base);
+      endOfDay.setHours(23, 59, 0, 0);
+      options.push(endOfDay);
+    }
+  }
+
   return options;
 }
 
@@ -53,6 +67,7 @@ export function TimePickerSheet({
   value,
   minuteInterval = 15,
   hourRange,
+  includeEndOfDay = false,
   onConfirm,
   onClose,
   presentation = 'modal',
@@ -63,8 +78,8 @@ export function TimePickerSheet({
   const useHourRangeList = hourRange != null;
   const { overlayStyle, cardStyle } = usePickerSheetLayout({ maxWidth });
   const webTimeOptions = useMemo(
-    () => buildWebTimeOptions(minuteInterval, hourRange),
-    [hourRange, minuteInterval],
+    () => buildWebTimeOptions(minuteInterval, hourRange, includeEndOfDay),
+    [hourRange, includeEndOfDay, minuteInterval],
   );
 
   useEffect(() => {

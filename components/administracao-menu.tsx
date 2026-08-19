@@ -34,6 +34,7 @@ const ADMIN_ONLY_ITEMS: AdminMenuItem[] = [
   { label: 'Lista de Acessos', route: '/lista-acessos' },
   { label: 'Lista de Logins', route: '/lista-logins' },
   { label: 'Lista de Logados', route: '/lista-logados' },
+  { label: 'Publicidade', route: '/resumo-publicidade' },
 ];
 
 const CLUB_ADMIN_ITEMS: AdminMenuItem[] = [

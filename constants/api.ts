@@ -41,6 +41,8 @@ export const API_ENDPOINTS = {
   usersbloqueados: '/usersbloqueados',
   pesquisarUsuario: '/pesquisarUsuario',
   jogos: '/jogos',
+  /** GET /plataforma — totais públicos da página /patrocinador. */
+  plataforma: '/plataforma',
   cancelarJogo: '/cancelarJogo',
   sendWzapEspera: '/sendWzapEspera',
   sendWzapAdicionar: '/sendWzapAdicionar',

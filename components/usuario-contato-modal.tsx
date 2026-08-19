@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Image,
   KeyboardAvoidingView,
   Linking,
@@ -22,6 +21,7 @@ import { getApiErrorMessage } from '@/services/api-client';
 import { getUserPhoto, updateUserPhoto } from '@/services/user-service';
 import type { PhotoAsset } from '@/types/user-photo';
 import type { UsuarioListItem } from '@/types/usuario';
+import { appAlert } from '@/utils/app-dialog-bridge';
 import { formatBrazilianMobilePhone } from '@/utils/phone-mask';
 import {
   CameraLaunchError,
@@ -75,12 +75,12 @@ const FIELDS_SAVE_SUCCESS_MESSAGE = 'Dados atualizados com sucesso.';
 
 function handlePhotoPickerError(error: unknown) {
   if (error instanceof CameraPermissionError || error instanceof GalleryPermissionError) {
-    Alert.alert('Permissão necessária', error.message);
+    void appAlert({ title: 'Permissão necessária', message: error.message });
     return;
   }
 
   if (error instanceof CameraLaunchError || error instanceof GalleryLaunchError) {
-    Alert.alert('Erro', error.message);
+    void appAlert({ title: 'Erro', message: error.message });
   }
 }
 
@@ -264,7 +264,7 @@ export function UsuarioContatoModal({
     }
 
     if (!authToken) {
-      Alert.alert('Erro', PHOTO_SAVE_ERROR_MESSAGE);
+      void appAlert({ title: 'Erro', message: PHOTO_SAVE_ERROR_MESSAGE });
       return;
     }
 

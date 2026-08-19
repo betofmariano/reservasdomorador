@@ -10,6 +10,7 @@ export const ADMINISTRACAO_SISTEMA_ROUTES = new Set([
   'lista-acessos',
   'lista-logins',
   'lista-logados',
+  'resumo-publicidade',
 ]);
 
 export const ADMINISTRACAO_CLUBE_ROUTES = new Set([
@@ -35,7 +36,15 @@ export const PUBLIC_AUTHENTICATED_ROUTES = new Set([
   'reservar-horario',
   'lista-espera',
   'lista-espera-horarios',
+  'patrocinador',
 ]);
+
+/** Páginas públicas — abrem sem login (espelho do site Bubble). */
+export const PUBLIC_UNAUTHENTICATED_ROUTES = new Set(['patrocinador']);
+
+export function isPublicUnauthenticatedRoute(routeName: string): boolean {
+  return PUBLIC_UNAUTHENTICATED_ROUTES.has(routeName);
+}
 
 export function isAdministracaoChildRoute(routeName: string): boolean {
   return (

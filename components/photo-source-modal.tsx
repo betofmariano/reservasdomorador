@@ -1,8 +1,9 @@
-import { Alert, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { WEB_MAX_CONTENT_WIDTH } from '@/constants/web-layout';
 import { useClubSelectionModalLayout } from '@/hooks/use-club-selection-modal-layout';
 import type { PhotoAsset } from '@/types/user-photo';
+import { appAlert } from '@/utils/app-dialog-bridge';
 import {
   CameraLaunchError,
   CameraPermissionError,
@@ -27,12 +28,12 @@ const COLORS = {
 
 function handlePhotoPickerError(error: unknown) {
   if (error instanceof CameraPermissionError || error instanceof GalleryPermissionError) {
-    Alert.alert('Permissão necessária', error.message);
+    void appAlert({ title: 'Permissão necessária', message: error.message });
     return;
   }
 
   if (error instanceof CameraLaunchError || error instanceof GalleryLaunchError) {
-    Alert.alert('Erro', error.message);
+    void appAlert({ title: 'Erro', message: error.message });
   }
 }
 

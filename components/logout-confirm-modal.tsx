@@ -1,5 +1,7 @@
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { APP_DISPLAY_NAME } from '@/constants/app-branding';
+
 type LogoutConfirmModalProps = {
   visible: boolean;
   title?: string;
@@ -31,6 +33,7 @@ export function LogoutConfirmModal({
       onRequestClose={onCancel}>
       <View style={styles.overlay}>
         <View style={styles.card}>
+          <Text style={styles.appName}>{APP_DISPLAY_NAME}</Text>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.message}>{message}</Text>
 
@@ -69,6 +72,13 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderRadius: 14,
     padding: 20,
+  },
+  appName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.blue,
+    textAlign: 'center',
+    marginBottom: 8,
   },
   title: {
     fontSize: 18,

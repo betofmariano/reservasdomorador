@@ -7,11 +7,12 @@ import 'react-native-reanimated';
 
 import { AppVersionChecker } from '@/components/app-version-checker';
 import { UserLocalSelectionGate } from '@/components/user-local-selection-gate';
+import { AppDialogProvider } from '@/contexts/app-dialog-context';
 import { AuthProvider, useAuth } from '@/contexts/auth-context';
 import { UserContextProvider } from '@/contexts/user-context';
 import { AppToastProvider } from '@/contexts/app-toast-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { canUserAccessRoute, getActiveRouteName, isAuthRoute } from '@/utils/route-access';
+import { canUserAccessRoute, getActiveRouteName, isAuthRoute, isPublicUnauthenticatedRoute } from '@/utils/route-access';
 import { HOME_ROUTE, LOGIN_ROUTE, navigateToHome } from '@/utils/auth-navigation';
 
 function RootLayoutNav() {
@@ -31,9 +32,11 @@ function RootLayoutNav() {
       return;
     }
 
+    const routeName = getActiveRouteName(segments);
     const inAuthGroup = isAuthRoute(segments);
+    const isPublicPage = isPublicUnauthenticatedRoute(routeName);
 
-    if (!isAuthenticated && !inAuthGroup) {
+    if (!isAuthenticated && !inAuthGroup && !isPublicPage) {
       router.replace(LOGIN_ROUTE);
       return;
     }
@@ -43,10 +46,12 @@ function RootLayoutNav() {
       return;
     }
 
-    const routeName = getActiveRouteName(segments);
-
     if (isAuthenticated && (routeName === '' || routeName === 'index')) {
       router.replace(HOME_ROUTE);
+      return;
+    }
+
+    if (isPublicPage) {
       return;
     }
 
@@ -88,6 +93,7 @@ function RootLayoutNav() {
         <Stack.Screen name="lista-acessos" />
         <Stack.Screen name="lista-logins" />
         <Stack.Screen name="lista-logados" />
+        <Stack.Screen name="resumo-publicidade" />
         <Stack.Screen name="lista-usuarios-gestor" />
         <Stack.Screen name="lista-usuarios-suspensos" />
         <Stack.Screen name="configuracao-local" />
@@ -96,6 +102,7 @@ function RootLayoutNav() {
         <Stack.Screen name="mapa-horarios" />
         <Stack.Screen name="administracao" />
         <Stack.Screen name="meus-dados" />
+        <Stack.Screen name="patrocinador" />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
       </Stack>
       <AppVersionChecker enabled={!isLoading} />
@@ -109,9 +116,11 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <UserContextProvider>
-        <AppToastProvider>
-          <RootLayoutNav />
-        </AppToastProvider>
+        <AppDialogProvider>
+          <AppToastProvider>
+            <RootLayoutNav />
+          </AppToastProvider>
+        </AppDialogProvider>
       </UserContextProvider>
     </AuthProvider>
   );

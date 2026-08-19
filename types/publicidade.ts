@@ -59,6 +59,31 @@ export type MostrarPubliXanoResponse = {
   display: string;
 };
 
+export const PUBLICIDADE_APPS = [
+  'MatchPlace',
+  'MatchPoint',
+  'MatchTraining',
+  'MatchGame',
+] as const;
+
+export type PublicidadeApp = (typeof PUBLICIDADE_APPS)[number];
+
+export type PublicidadeEmpresaTotais = {
+  empresa: string;
+  MatchPlace: number;
+  MatchPoint: number;
+  MatchTraining: number;
+  MatchGame: number;
+  total: number;
+};
+
+export type ResumoPublicidadeResult = {
+  dataInicio: number;
+  dataFinal: number;
+  empresas: PublicidadeEmpresaTotais[];
+  totais: PublicidadeEmpresaTotais;
+};
+
 export type PatrocinioUltimaTelaPayload = {
   publicidade_id: number;
   users_id: number;

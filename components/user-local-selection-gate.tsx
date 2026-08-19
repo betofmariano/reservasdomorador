@@ -1,7 +1,7 @@
 import { useAuth } from '@/contexts/auth-context';
 import { useUserContext } from '@/contexts/user-context';
 import { SelecionarLocalPrioritarioModal } from '@/components/selecionar-local-prioritario-modal';
-import { isAuthRoute } from '@/utils/route-access';
+import { getActiveRouteName, isAuthRoute, isPublicUnauthenticatedRoute } from '@/utils/route-access';
 import { useSegments } from 'expo-router';
 
 export function UserLocalSelectionGate() {
@@ -17,12 +17,14 @@ export function UserLocalSelectionGate() {
   } = useUserContext();
   const segments = useSegments();
   const inAuthGroup = isAuthRoute(segments);
+  const isPublicPage = isPublicUnauthenticatedRoute(getActiveRouteName(segments));
 
   const visible =
     isAuthenticated &&
     !isAuthLoading &&
     !isUserContextLoading &&
     !inAuthGroup &&
+    !isPublicPage &&
     !permissions.administrador &&
     requiresLocalSelection &&
     selectableUserLocals.length > 1;

@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { ChangePhotoModal } from '@/components/change-photo-modal';
 import { MatchPlaceLogoHomeLink } from '@/components/matchplace-logo';
 import { UserAvatar } from '@/components/user-avatar';
 import { APP_BUILD, APP_VERSION } from '@/constants/app-version';
+import { useAppDialog } from '@/contexts/app-dialog-context';
 import { useUserContext } from '@/contexts/user-context';
 import type { User } from '@/types/user';
 
@@ -24,6 +25,7 @@ type HomeHeaderProps = {
 
 export function HomeHeader({ user }: HomeHeaderProps) {
   const router = useRouter();
+  const { alert } = useAppDialog();
   const { currentAcademia } = useUserContext();
   const [isPhotoModalVisible, setIsPhotoModalVisible] = useState(false);
 
@@ -31,7 +33,10 @@ export function HomeHeader({ user }: HomeHeaderProps) {
 
   function handleAvatarPress() {
     if (!user?.id) {
-      Alert.alert('Erro', 'Não foi possível identificar o usuário.');
+      void alert({
+        title: 'Erro',
+        message: 'Não foi possível identificar o usuário.',
+      });
       return;
     }
 

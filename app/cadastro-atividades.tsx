@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -23,6 +22,7 @@ import { ExcluirCadastroModal } from '@/components/excluir-cadastro-modal';
 import { ScreenHeader, ScreenHeaderDivider } from '@/components/screen-header';
 import { WebScreenContainer } from '@/components/web-screen-container';
 import { WEB_MAX_CONTENT_WIDTH } from '@/constants/web-layout';
+import { useAppDialog } from '@/contexts/app-dialog-context';
 import { useAppToast } from '@/contexts/app-toast-context';
 import { useAuth } from '@/contexts/auth-context';
 import { useCadastroAtividadesScreen } from '@/hooks/use-cadastro-atividades-screen';
@@ -43,6 +43,7 @@ const COLORS = {
 export default function CadastroAtividadesScreen() {
   const router = useRouter();
   const { showToast } = useAppToast();
+  const { confirm } = useAppDialog();
   const { user, authToken, isLoading: isAuthLoading, signOut } = useAuth();
 
   const [atividadeToDelete, setAtividadeToDelete] = useState<Atividade | null>(null);
@@ -132,7 +133,7 @@ export default function CadastroAtividadesScreen() {
     router.replace('/');
   }
 
-  function handleCancel() {
+  async function handleCancel() {
     if (isSaving || isUpdating || isDeleting) {
       return;
     }
@@ -142,20 +143,17 @@ export default function CadastroAtividadesScreen() {
       return;
     }
 
-    const confirmExit = () => navigateBack();
+    const confirmed = await confirm({
+      title: CLUB_ADMIN_MESSAGES.unsavedTitle,
+      message: CLUB_ADMIN_MESSAGES.unsavedMessage,
+      cancelLabel: 'Continuar editando',
+      confirmLabel: 'Sair',
+      destructive: true,
+    });
 
-    if (Platform.OS === 'web') {
-      if (typeof window !== 'undefined' && window.confirm(CLUB_ADMIN_MESSAGES.unsavedMessage)) {
-        confirmExit();
-      }
-
-      return;
+    if (confirmed) {
+      navigateBack();
     }
-
-    Alert.alert(CLUB_ADMIN_MESSAGES.unsavedTitle, CLUB_ADMIN_MESSAGES.unsavedMessage, [
-      { text: 'Continuar editando', style: 'cancel' },
-      { text: 'Sair', style: 'destructive', onPress: confirmExit },
-    ]);
   }
 
   async function handleSave() {
