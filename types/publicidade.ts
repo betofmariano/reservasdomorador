@@ -1,3 +1,5 @@
+import type { PhotoAsset } from '@/types/user-photo';
+
 export type PublicidadeImage = {
   url: string;
 };
@@ -33,6 +35,35 @@ export type Patrocinador = {
   banner?: PublicidadeImage | null;
   popupTela?: PublicidadeImage | null;
   wzquadro?: PublicidadeImage | null;
+  telefoneNovo?: string | null;
+  sloganNovo?: string | null;
+  instagramNovo?: string | null;
+  direcionamentoNovo?: string | null;
+  websiteNovo?: string | null;
+  webSiteNovo?: string | null;
+  logoNovo?: string | null;
+  bannerNovo?: string | null;
+  popupTelaNovo?: string | null;
+  wzquadroNovo?: string | null;
+  logoTrocar?: PublicidadeImage | null;
+  bannerTrocar?: PublicidadeImage | null;
+  popupTelaTrocar?: PublicidadeImage | null;
+  wzQuadroTrocar?: PublicidadeImage | null;
+};
+
+export type PatrocinadorAssetSlot = 'logo' | 'banner' | 'popup' | 'whatsapp';
+
+export type PatrocinadorAlterarDadosPayload = {
+  patrocinadoresId: number;
+  telefoneNovo?: string;
+  sloganNovo?: string;
+  instagramNovo?: string;
+  direcionamentoNovo?: string;
+  webSiteNovo?: string;
+  logoTrocar?: PhotoAsset;
+  bannerTrocar?: PhotoAsset;
+  popupTelaTrocar?: PhotoAsset;
+  wzQuadroTrocar?: PhotoAsset;
 };
 
 export type PatrocinadoresResponse = Patrocinador[];

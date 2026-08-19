@@ -1,5 +1,8 @@
 import { PUBLICIDADE_APPS } from '@/types/publicidade';
-import type { GerarResumoPublicidadePdfInput } from '@/utils/gerar-resumo-publicidade-pdf';
+import type {
+  GerarResumoPublicidadePdfInput,
+  GerarResultadosPublicidadeEmpresaPdfInput,
+} from '@/utils/gerar-resumo-publicidade-pdf';
 import {
   formatPresencaDataLabel,
   formatPresencaHorarioLabel,
@@ -77,6 +80,73 @@ export async function gerarResumoPublicidadePdf(
       3: { halign: 'right' },
       4: { halign: 'right' },
       5: { halign: 'right' },
+    },
+  });
+
+  doc.save(filename);
+}
+
+export type { GerarResultadosPublicidadeEmpresaPdfInput };
+
+export async function gerarResultadosPublicidadeEmpresaPdf(
+  input: GerarResultadosPublicidadeEmpresaPdfInput,
+): Promise<void> {
+  const [{ default: jsPDF }, autoTableModule] = await Promise.all([
+    import('jspdf/dist/jspdf.es.min.js'),
+    import('jspdf-autotable'),
+  ]);
+
+  const autoTable = autoTableModule.default;
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+  });
+
+  const marginLeft = 14;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const now = new Date();
+  const empresaSlug = slugifyPresencaFilename(input.empresa) || 'empresa';
+  const periodoSlug = slugifyPresencaFilename(input.periodoLabel) || 'periodo';
+  const filename = `resultados-publicidade-${empresaSlug}-${periodoSlug}-${Date.now()}.pdf`;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.text('Resultados da Publicidade', pageWidth / 2, 18, { align: 'center' });
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.text(`Empresa: ${input.empresa}`, marginLeft, 30);
+  doc.text(`Período: ${input.periodoLabel}`, marginLeft, 37);
+  doc.text(
+    `Gerado em: ${formatPresencaDataLabel(now.getTime())} ${formatPresencaHorarioLabel(now.getTime())}`,
+    marginLeft,
+    44,
+  );
+
+  autoTable(doc, {
+    startY: 52,
+    head: [['Aplicativo', 'TOTAL']],
+    body: [
+      ...PUBLICIDADE_APPS.map((app) => [
+        app,
+        formatPublicidadeInteiro(input.totais[app]),
+      ]),
+      ['TOTAL', formatPublicidadeInteiro(input.totais.total)],
+    ],
+    styles: {
+      fontSize: 11,
+      cellPadding: 3,
+    },
+    headStyles: {
+      fillColor: [36, 86, 168],
+      textColor: 255,
+    },
+    alternateRowStyles: {
+      fillColor: [244, 246, 250],
+    },
+    columnStyles: {
+      1: { halign: 'right' },
     },
   });
 

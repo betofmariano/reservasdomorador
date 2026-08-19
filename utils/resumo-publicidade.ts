@@ -36,11 +36,17 @@ export function normalizePublicidadeApp(
   return null;
 }
 
+export function empresasPublicidadeIguais(left: string, right: string): boolean {
+  return left.trim().localeCompare(right.trim(), 'pt-BR', { sensitivity: 'base' }) === 0;
+}
+
 export function agregarResumoPublicidade(
   records: MostrarPubliXanoResponse[],
   dataInicio: number,
   dataFinal: number,
+  empresaFiltro?: string | null,
 ): ResumoPublicidadeResult {
+  const filtro = empresaFiltro?.trim() || null;
   const byEmpresa = new Map<string, PublicidadeEmpresaTotais>();
   const totais = emptyTotais('Total');
 
@@ -51,6 +57,11 @@ export function agregarResumoPublicidade(
     }
 
     const empresa = String(record.publi ?? '').trim() || '(sem empresa)';
+
+    if (filtro && !empresasPublicidadeIguais(empresa, filtro)) {
+      continue;
+    }
+
     const row = byEmpresa.get(empresa) ?? emptyTotais(empresa);
     row[app] += 1;
     row.total += 1;

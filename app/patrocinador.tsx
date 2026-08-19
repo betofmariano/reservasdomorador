@@ -1,6 +1,7 @@
 import { Image } from 'expo-image';
-import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
 import {
   PATROCINADOR_APPS,
@@ -10,6 +11,9 @@ import {
   type PatrocinadorShowcaseItem,
 } from '@/constants/patrocinador-static';
 import { MATCHPOINT_COLORS } from '@/constants/theme';
+import { HOME_MAX_BUTTON_WIDTH } from '@/constants/web-layout';
+import { useAuth } from '@/contexts/auth-context';
+import { usePatrocinadoresDoUsuario } from '@/hooks/use-patrocinadores-do-usuario';
 import { usePlataformaStats } from '@/hooks/use-plataforma-stats';
 import type { PlataformaStatsMetric } from '@/types/plataforma';
 
@@ -18,8 +22,12 @@ const TWO_COL_BREAKPOINT = 640;
 const PAGE_GUTTER = 16;
 
 export default function PatrocinadorScreen() {
+  const router = useRouter();
   const { width } = useWindowDimensions();
+  const { user } = useAuth();
   const { metrics } = usePlataformaStats();
+  const { empresas } = usePatrocinadoresDoUsuario(user);
+  const showGerenciarButton = empresas.length > 0;
   const platformColumns = width >= FOUR_COL_BREAKPOINT ? 4 : width >= TWO_COL_BREAKPOINT ? 2 : 1;
   const contentWidth = Math.max(0, width - PAGE_GUTTER * 2);
   const columnGap = 16;
@@ -38,6 +46,16 @@ export default function PatrocinadorScreen() {
         style={styles.screen}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}>
+        {showGerenciarButton ? (
+          <View style={styles.manageWrap}>
+            <Pressable
+              style={styles.manageButton}
+              onPress={() => router.push('/gerenciar-publicidade')}>
+              <Text style={styles.manageButtonText}>Gerenciar Minha Publicidade</Text>
+            </Pressable>
+          </View>
+        ) : null}
+
         <View style={styles.platformHeader}>
           <SectionTitle>Nossa Plataforma</SectionTitle>
 
@@ -175,6 +193,28 @@ const styles = StyleSheet.create({
     paddingBottom: 56,
     alignItems: 'stretch',
     gap: 28,
+  },
+  manageWrap: {
+    width: '100%',
+    alignItems: 'center',
+    paddingTop: 20,
+    paddingHorizontal: 16,
+  },
+  manageButton: {
+    width: '100%',
+    maxWidth: HOME_MAX_BUTTON_WIDTH,
+    minHeight: 48,
+    borderRadius: 24,
+    backgroundColor: MATCHPOINT_COLORS.blue,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  manageButtonText: {
+    color: MATCHPOINT_COLORS.white,
+    fontSize: 16,
+    fontWeight: '700',
+    textAlign: 'center',
   },
   statsBanner: {
     width: '100%',

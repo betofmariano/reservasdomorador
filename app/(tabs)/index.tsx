@@ -559,6 +559,26 @@ export default function HomeScreen() {
             onPress={() => setIsMeusLocaisVisible(true)}
           />
 
+          <MenuActionButton
+            label="Patrocinadores"
+            backgroundColor={COLORS.blue}
+            textColor={COLORS.white}
+            width={buttonWidth}
+            fontSize={menuButtonMetrics.fontSize}
+            buttonHeight={menuButtonMetrics.buttonHeight}
+            iconContainerWidth={menuButtonMetrics.iconContainerWidth}
+            paddingHorizontal={menuButtonMetrics.paddingHorizontal}
+            icon={
+              <Ionicons
+                name="megaphone-outline"
+                size={menuButtonMetrics.iconSize}
+                color={COLORS.white}
+              />
+            }
+            style={{ marginTop: BUTTON_GAP }}
+            onPress={() => router.push('/patrocinador')}
+          />
+
           <Pressable
             style={styles.sairLink}
             onPress={() => setIsLogoutModalVisible(true)}

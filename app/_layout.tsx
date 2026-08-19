@@ -94,6 +94,7 @@ function RootLayoutNav() {
         <Stack.Screen name="lista-logins" />
         <Stack.Screen name="lista-logados" />
         <Stack.Screen name="resumo-publicidade" />
+        <Stack.Screen name="aprovar-publicidade" />
         <Stack.Screen name="lista-usuarios-gestor" />
         <Stack.Screen name="lista-usuarios-suspensos" />
         <Stack.Screen name="configuracao-local" />
@@ -103,6 +104,7 @@ function RootLayoutNav() {
         <Stack.Screen name="administracao" />
         <Stack.Screen name="meus-dados" />
         <Stack.Screen name="patrocinador" />
+        <Stack.Screen name="gerenciar-publicidade" />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
       </Stack>
       <AppVersionChecker enabled={!isLoading} />

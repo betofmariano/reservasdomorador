@@ -363,13 +363,14 @@ export async function authMultipartPatchRequest<T>(
   path: string,
   token: string,
   formData: FormData,
+  defaultErrorMessage = 'Não foi possível atualizar sua foto. Tente novamente.',
 ): Promise<T> {
   return authMultipartRequest<T>(
     path,
     token,
     formData,
     'PATCH',
-    'Não foi possível atualizar sua foto. Tente novamente.',
+    defaultErrorMessage,
   );
 }
 

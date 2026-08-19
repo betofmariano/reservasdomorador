@@ -11,6 +11,7 @@ export const ADMINISTRACAO_SISTEMA_ROUTES = new Set([
   'lista-logins',
   'lista-logados',
   'resumo-publicidade',
+  'aprovar-publicidade',
 ]);
 
 export const ADMINISTRACAO_CLUBE_ROUTES = new Set([
@@ -37,13 +38,21 @@ export const PUBLIC_AUTHENTICATED_ROUTES = new Set([
   'lista-espera',
   'lista-espera-horarios',
   'patrocinador',
+  'gerenciar-publicidade',
 ]);
 
 /** Páginas públicas — abrem sem login (espelho do site Bubble). */
 export const PUBLIC_UNAUTHENTICATED_ROUTES = new Set(['patrocinador']);
 
+/** Rotas que não devem abrir o modal de seleção de local. */
+export const SKIP_LOCAL_SELECTION_ROUTES = new Set(['patrocinador', 'gerenciar-publicidade']);
+
 export function isPublicUnauthenticatedRoute(routeName: string): boolean {
   return PUBLIC_UNAUTHENTICATED_ROUTES.has(routeName);
+}
+
+export function shouldSkipLocalSelection(routeName: string): boolean {
+  return SKIP_LOCAL_SELECTION_ROUTES.has(routeName);
 }
 
 export function isAdministracaoChildRoute(routeName: string): boolean {

@@ -8,7 +8,13 @@ export const PUBLICIDADE_ENDPOINTS = {
   mostrarpublixano: '/mostrarpublixano',
   patrocinioUltimaTela: '/patrocinioUltimaTela',
   patrocinioUltimoVisto: '/patrocinioUltimoVisto',
+  patrocinadorAlterarDados: '/patrocinadorAlterarDados',
+  patrocinadorAprovarDados: '/patrocinadorAprovarDados',
 } as const;
+
+export function buildPatrocinadorItemPath(patrocinadoresId: number): string {
+  return `${PUBLICIDADE_ENDPOINTS.patrocinadores}/${patrocinadoresId}`;
+}
 
 export const API_ENDPOINTS = {
   auth: {
