@@ -13,6 +13,70 @@ import { resolveEffectiveLocalRoles } from '@/utils/user-local-roles';
 
 const NESTED_USER_KEYS = ['users', '_users', 'usersxano', '_usersxano'] as const;
 
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
+function omitPassword(
+  record: Record<string, unknown> | null,
+): Record<string, unknown> {
+  if (!record) {
+    return {};
+  }
+
+  const next = { ...record };
+  delete next.password;
+  return next;
+}
+
+/**
+ * Combina GET /auth/me: `user` (tabela users) + `vinculo` (userslocal).
+ * `User.id` vem só de `user.id`. `vinculo.id` vai para `userslocalId`.
+ */
+function mergeAuthMeUserAndVinculo(raw: Record<string, unknown>): Record<string, unknown> {
+  const userRecord = isPlainRecord(raw.user) ? raw.user : null;
+  const vinculo = isPlainRecord(raw.vinculo) ? raw.vinculo : null;
+
+  if (!userRecord && !vinculo) {
+    return raw;
+  }
+
+  const userId = userRecord ? normalizeRecordId(userRecord.id) : null;
+  const vinculoId = vinculo ? normalizeRecordId(vinculo.id) : null;
+  const condominioId = vinculo
+    ? normalizeRecordId(vinculo.condominio_id ?? vinculo.academias_id)
+    : null;
+
+  const userWithoutPassword = omitPassword(userRecord);
+  const vinculoWithoutId = omitPassword(vinculo);
+  if (vinculoWithoutId) {
+    delete vinculoWithoutId.id;
+  }
+
+  return {
+    ...raw,
+    ...vinculoWithoutId,
+    ...userWithoutPassword,
+    id: userId ?? userWithoutPassword.id,
+    users_id: userId ?? vinculoWithoutId.users_id,
+    academias_id: condominioId ?? userWithoutPassword.academias_id,
+    condominio_id: condominioId,
+    localPrioritario: condominioId,
+    userslocalId: vinculoId,
+    nome: userWithoutPassword.nome ?? vinculoWithoutId.nome,
+    telefone: userWithoutPassword.telefone ?? userWithoutPassword.telefoneLimpo,
+    telefoneLimpo: userWithoutPassword.telefoneLimpo ?? userWithoutPassword.telefone,
+    Foto: userWithoutPassword.Foto ?? userWithoutPassword.foto,
+    administrador: vinculoWithoutId.administrador,
+    gestor: vinculoWithoutId.gestor,
+    professor: vinculoWithoutId.professor,
+    aprovado: vinculoWithoutId.aprovado,
+    bloqueado: vinculoWithoutId.bloqueado,
+    excluido: vinculoWithoutId.excluido ?? userWithoutPassword.excluido,
+    complemento: vinculoWithoutId.complemento ?? userWithoutPassword.complemento,
+  };
+}
+
 function mergeUsersLocalFields(record: Record<string, unknown>): Record<string, unknown> {
   const usersLocal = record.usersLocal ?? record.userslocal;
 
@@ -105,8 +169,12 @@ function readUserTelefoneLimpo(record: Record<string, unknown>): string {
 }
 
 export function normalizeUserFromApi(raw: unknown): User {
-  const baseRecord =
-    raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
+  const incoming =
+    raw && typeof raw === 'object' && !Array.isArray(raw)
+      ? (raw as Record<string, unknown>)
+      : {};
+  const hasAuthMeShape = isPlainRecord(incoming.user) || isPlainRecord(incoming.vinculo);
+  const baseRecord = hasAuthMeShape ? mergeAuthMeUserAndVinculo(incoming) : incoming;
   const record = mergeNestedUserFields(baseRecord);
 
   const telefone = readString(record, ['telefone', 'telefoneConfirmado']);
@@ -115,17 +183,22 @@ export function normalizeUserFromApi(raw: unknown): User {
     record._users && typeof record._users === 'object'
       ? (record._users as Record<string, unknown>)
       : null;
+  const photoSource = isPlainRecord(incoming.user) ? incoming.user : baseRecord;
+  const userId = hasAuthMeShape
+    ? normalizeRecordId(isPlainRecord(incoming.user) ? incoming.user.id : record.id)
+    : (readUserId(record) ?? normalizeRecordId(record.id));
 
   return {
-    id: readUserId(record) ?? normalizeRecordId(record.id) ?? 0,
+    id: userId ?? 0,
     nome: readPersonName(record),
     email: readString(record, ['email']) || (nestedUsers ? readString(nestedUsers, ['email']) : ''),
     academias_id: readAcademiaId(record) ?? 0,
-    telefone,
+    userslocalId: normalizeRecordId(record.userslocalId) ?? null,
+    telefone: telefone || telefoneLimpo,
     telefoneLimpo,
     telefoneCorrigido: readString(record, ['novoTelefone', 'telefoneCorrigido']),
     telefoneConfirmado: telefoneLimpo,
-    foto: resolvePersonPhotoFromApiPayload(baseRecord),
+    foto: resolvePersonPhotoFromApiPayload(photoSource),
     administrador: normalizeBoolean(record.administrador),
     gestor: normalizeBoolean(record.gestor),
     professor: normalizeBoolean(record.professor),
@@ -140,7 +213,7 @@ export function normalizeUserFromApi(raw: unknown): User {
         : null,
     excluido: normalizeBoolean(record.excluido),
     localPrioritario: normalizeRecordId(
-      record.localPrioritario ?? record.local_prioritario,
+      record.localPrioritario ?? record.local_prioritario ?? record.condominio_id,
     ),
     telefoneIncorreto: normalizeBoolean(record.telefoneIncorreto ?? record.telefone_incorreto),
     fotoUpload: record.fotoUpload ?? record.foto_upload ?? null,

@@ -179,37 +179,14 @@ function resolveLogadoPageWidth(pageWidth?: number): number {
 }
 
 export async function registerLogadoForAuthenticatedUser(
-  authToken: string,
-  options?: {
+  _authToken: string,
+  _options?: {
     pageWidth?: number;
     sessionAcademiasId?: number | null;
     force?: boolean;
   },
 ): Promise<void> {
-  const resolved = await resolveLogadoRegistrationFromAuthenticatedContext(
-    authToken,
-    options?.sessionAcademiasId,
-  );
-
-  if (!resolved) {
-    console.warn('Registro em /logados ignorado: usuário autenticado sem local identificável.');
-    return;
-  }
-
-  const registrationKey = `${resolved.user.id}:${resolved.registration.academiasId}`;
-
-  if (!options?.force && lastRegisteredLogadoKey === registrationKey) {
-    return;
-  }
-
-  const payload = buildLogadoPayload(
-    resolved.user,
-    resolveLogadoPageWidth(options?.pageWidth),
-    resolved.registration,
-  );
-
-  await registrarLogado(payload, authToken);
-  lastRegisteredLogadoKey = registrationKey;
+  // Contrato de POST /logados ainda usa academias_id; desativado para não bloquear o login.
 }
 
 export async function registrarLogado(

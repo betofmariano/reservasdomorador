@@ -1,5 +1,5 @@
 /**
- * Testa GET /auth/me-fone e compara com GET /getUser.
+ * Testa GET /auth/me e compara com GET /getUser.
  *
  * Uso:
  *   set MATCHPLACE_AUTH_TOKEN=<token> && npx tsx scripts/test-me-fone.ts
@@ -8,7 +8,7 @@
 
 import { normalizeUserFromApi } from '../utils/normalize-user';
 
-const API_BASE = 'https://x186-chcp-dg8s.n7.xano.io/api:rw80pf6f';
+const API_BASE = 'https://x186-chcp-dg8s.n7.xano.io/api:FLyoOY3L';
 
 const LOCAL_ASSOCIATION_ROOT_KEYS = [
   'users_id',
@@ -63,7 +63,7 @@ async function login(telefoneLimpo: string, password: string): Promise<string> {
 }
 
 async function fetchMeFone(token: string): Promise<unknown> {
-  const response = await fetch(`${API_BASE}/auth/me-fone`, {
+  const response = await fetch(`${API_BASE}/auth/me`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 

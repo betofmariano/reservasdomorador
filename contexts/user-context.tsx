@@ -111,6 +111,7 @@ export function UserContextProvider({ children }: { children: ReactNode }) {
         }
 
         const shouldAutoPersist =
+          resolvedUser.userslocalId == null &&
           nextState.selectableUserLocals.length === 1 &&
           !isLocalPrioritarioValid(
             resolvedUser.localPrioritario,

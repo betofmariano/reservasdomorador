@@ -126,7 +126,7 @@ export function readPersonPhoto(record: Record<string, unknown>): string {
 }
 
 export function readAcademiaId(record: Record<string, unknown>): number | null {
-  return normalizeRecordId(record.academias_id);
+  return normalizeRecordId(record.academias_id ?? record.condominio_id);
 }
 
 export function readUserId(record: Record<string, unknown>): number | null {

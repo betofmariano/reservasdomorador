@@ -3,6 +3,8 @@ export type User = {
   nome: string;
   email: string;
   academias_id: number;
+  /** Id do vínculo userslocal. Nunca usar no lugar de `User.id`. */
+  userslocalId?: number | null;
   telefone: string;
   telefoneLimpo: string;
   telefoneCorrigido: string;

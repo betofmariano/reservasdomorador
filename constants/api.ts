@@ -1,4 +1,4 @@
-export const XANO_API_BASE_URL = 'https://x186-chcp-dg8s.n7.xano.io/api:rw80pf6f';
+export const XANO_API_BASE_URL = 'https://x186-chcp-dg8s.n7.xano.io/api:FLyoOY3L';
 export const XANO_PUBLICIDADE_API_BASE_URL = XANO_API_BASE_URL;
 
 export const PUBLICIDADE_ENDPOINTS = {
@@ -21,7 +21,7 @@ export const API_ENDPOINTS = {
     signupFone: '/auth/signup-fone',
     /** Endpoint atualizado: resposta com `senhaCorreta` (e tratamento de falha de token). */
     loginSafe: '/auth/login-safe',
-    me: '/auth/me-fone',
+    me: '/auth/me',
     solicitarRecuperacao: '/auth/solicitar-recuperacao',
     consultarRecuperacao: '/auth/consultar-recuperacao',
     validarRecuperacao: '/auth/validar-recuperacao',
@@ -34,6 +34,8 @@ export const API_ENDPOINTS = {
     alterarNome: '/alterarNome',
   },
   academias: '/academias',
+  /** Workspace Condominios: substitui GET /academias no carregamento de locais. */
+  condominio: '/condominio',
   users: '/users',
   getUser: '/getUser',
   userslocal: '/userslocal',

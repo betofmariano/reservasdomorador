@@ -13,7 +13,7 @@ function buildAcademiaItemPath(academiaId: number): string {
 }
 
 export async function getAcademias(): Promise<Academia[]> {
-  const data = await getRequest<unknown>(API_ENDPOINTS.academias);
+  const data = await getRequest<unknown>(API_ENDPOINTS.condominio);
   const academias = normalizeAcademiasFromApi(data);
 
   return filterActiveAcademias(academias);

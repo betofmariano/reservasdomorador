@@ -5,7 +5,7 @@
  * Não altera dados — apenas diagnostica duplicatas, vazios e tamanhos inválidos.
  */
 
-const API_BASE = 'https://x186-chcp-dg8s.n7.xano.io/api:rw80pf6f';
+const API_BASE = 'https://x186-chcp-dg8s.n7.xano.io/api:FLyoOY3L';
 
 type RawUser = {
   id?: number;

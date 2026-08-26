@@ -21,7 +21,6 @@ import {
   removeStoredAuthToken,
   setStoredAuthToken,
 } from '@/utils/auth-storage';
-import { enrichUserLocalRoles } from '@/utils/enrich-user-admin-access';
 import {
   LOGIN_USER_MESSAGES,
   parseLoginSafeResponse,
@@ -184,7 +183,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const establishAuthSession = useCallback(
     async (token: string): Promise<User | null> => {
       try {
-        const currentUser = await enrichUserLocalRoles(await getMe(token));
+        const currentUser = await getMe(token);
         const blockedError = getBlockedUserError(currentUser);
 
         if (blockedError) {
@@ -418,7 +417,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const currentUser = await enrichUserLocalRoles(await getMe(authToken));
+      const currentUser = await getMe(authToken);
       setUser(currentUser);
       return true;
     } catch (error) {
