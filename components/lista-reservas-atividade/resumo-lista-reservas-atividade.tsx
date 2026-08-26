@@ -7,7 +7,7 @@ type ResumoListaReservasAtividadeProps = {
 };
 
 const COLORS = {
-  navy: '#1B2B4B',
+  navy: '#3A2154',
   muted: '#5C6475',
   background: '#F4F6FA',
   border: '#E2E6EE',

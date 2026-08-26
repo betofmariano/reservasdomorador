@@ -52,7 +52,8 @@ import { isModuloAtivoNaAcademia } from '@/utils/academia-permissoes-gestor';
 
 const COLORS = {
   background: '#FFFFFF',
-  blue: '#2456A8',
+  navy: '#3A2154',
+  blue: '#0F7A6C',
   error: '#D64545',
   muted: '#5C6475',
 };
@@ -277,7 +278,7 @@ export default function ReservarHorarioScreen() {
           return;
         }
 
-        showToast(RESERVAR_HORARIO_MESSAGES.success, { variant: 'success' });
+        showToast(outcome.message || RESERVAR_HORARIO_MESSAGES.success, { variant: 'success' });
         clearSelectedSemana();
         return;
       }

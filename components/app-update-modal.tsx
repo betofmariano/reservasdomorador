@@ -22,8 +22,8 @@ type AppUpdateModalProps = {
 };
 
 const COLORS = {
-  navy: '#1B2B4B',
-  blue: '#2456A8',
+  navy: '#3A2154',
+  blue: '#0F7A6C',
   white: '#FFFFFF',
   muted: '#5C6475',
 };
@@ -63,7 +63,7 @@ export function AppUpdateModal({
         <View style={[styles.card, isWide && styles.cardWide]}>
           <Text style={styles.title}>Nova versão disponível</Text>
 
-          <Text style={styles.message}>Existe uma nova versão do MatchPlace disponível.</Text>
+          <Text style={styles.message}>Existe uma nova versão do Reservas do Morador disponível.</Text>
 
           <Text style={styles.versionLine}>
             Versão atual:{'\n'}

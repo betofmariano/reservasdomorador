@@ -1,12 +1,12 @@
 {
-  "name": "MatchPlace",
-  "short_name": "MatchPlace",
-  "description": "Reservas de vagas com facilidade e justiça.",
-  "start_url": "https://www.matchplace.com.br/",
-  "scope": "https://www.matchplace.com.br/",
+  "name": "Reservas do Morador",
+  "short_name": "Reservas",
+  "description": "Reservas de espaços do condomínio com facilidade e justiça.",
+  "start_url": "https://reservasdomorador.com.br/",
+  "scope": "https://reservasdomorador.com.br/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "background_color": "#F4F6F4",
+  "theme_color": "#0F7A6C",
   "icons": [
     {
       "src": "./icon-192.png",

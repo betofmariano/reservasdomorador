@@ -2,7 +2,8 @@ import { Pressable, StyleSheet, Text, View, type TextStyle, type ViewStyle } fro
 import { Ionicons } from '@expo/vector-icons';
 
 import type { ListaReservaItem } from '@/types/lista-reserva';
-import { formatDateLabel, formatFullDateLabel, formatGameTime } from '@/utils/jogos-time';
+import { formatFullDateLabel, formatGameTime } from '@/utils/jogos-time';
+import { formatListaReservaMensalPorSemanaDataHora } from '@/utils/lista-reservas';
 import type { ListaReservasTableLayout } from '@/utils/lista-reservas-table-layout';
 
 type ListaReservaListItemProps = {
@@ -18,7 +19,7 @@ type ListaReservaListItemProps = {
 export { LISTA_RESERVA_TABLE_MIN_WIDTH } from '@/utils/lista-reservas-table-layout';
 
 const COL_DATA_WIDTH = 72;
-const COL_DATA_HORA_WIDTH = 108;
+const COL_DATA_HORA_WIDTH = 122;
 const COL_HORA_WIDTH = 72;
 const COL_ATIVIDADE_WIDTH = 180;
 const COL_USUARIO_WIDTH = 200;
@@ -27,7 +28,7 @@ const COL_DATA_FONT_SIZE = 14;
 const COL_NOME_FONT_SIZE = 16;
 
 const COLORS = {
-  navy: '#1B2B4B',
+  navy: '#3A2154',
   error: '#D64545',
   border: '#E2E6EE',
 };
@@ -142,7 +143,7 @@ export function ListaReservaListItem({
 
         <Text style={[styles.tableCell, styles.colDataHoraText]} numberOfLines={1}>
           {reserva.dataAtividade > 0
-            ? `${formatDateLabel(new Date(reserva.dataAtividade))} ${formatGameTime(reserva.dataAtividade)}`
+            ? formatListaReservaMensalPorSemanaDataHora(reserva.dataAtividade)
             : '—'}
         </Text>
 

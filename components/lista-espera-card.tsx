@@ -10,10 +10,10 @@ type ListaEsperaCardProps = {
 };
 
 const COLORS = {
-  navy: '#1B2B4B',
-  blue: '#2456A8',
+  navy: '#3A2154',
+  blue: '#0F7A6C',
   success: '#1F8A4C',
-  pending: '#E89520',
+  pending: '#E8B830',
   error: '#D64545',
 };
 

@@ -1,7 +1,6 @@
 import {
   API_ENDPOINTS,
   buildAtividadeItemPath,
-  buildAtividadesAcademiaPath,
   buildAtividadesListPath,
 } from '@/constants/api';
 import {
@@ -26,9 +25,9 @@ export async function getAtividades(academiasId?: number): Promise<Atividade[]> 
   return filterAtividadesByAcademia(atividades, academiasId);
 }
 
-/** Lista atividades do local via GET /atividadesAcademia?academias_id= */
+/** Lista atividades do condomínio via GET /atividades?condominio_id= */
 export async function getAtividadesAcademia(academiasId: number): Promise<Atividade[]> {
-  const data = await getRequest<unknown>(buildAtividadesAcademiaPath(academiasId));
+  const data = await getRequest<unknown>(buildAtividadesListPath(academiasId));
   return filterAtividadesByAcademia(normalizeAtividadesFromApi(data), academiasId);
 }
 

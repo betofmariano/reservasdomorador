@@ -16,7 +16,7 @@ type LogadoDetalhesModalProps = {
 };
 
 const COLORS = {
-  navy: '#1B2B4B',
+  navy: '#3A2154',
   white: '#FFFFFF',
 };
 

@@ -2,7 +2,9 @@ import type { Atividade } from '@/types/atividade';
 import {
   normalizeBoolean,
   normalizeRecordId,
+  readAcademiaId,
   readString,
+  unwrapApiList,
 } from '@/utils/normalize-api-fields';
 
 function readNumber(record: Record<string, unknown>, keys: string[]): number {
@@ -24,8 +26,8 @@ export function normalizeAtividadeFromApi(raw: unknown): Atividade | null {
 
   const record = raw as Record<string, unknown>;
   const id = normalizeRecordId(record.id);
-  const academiasId = normalizeRecordId(record.academias_id);
-  const atividade = readString(record, ['atividade']).trim();
+  const academiasId = readAcademiaId(record);
+  const atividade = readString(record, ['atividade', 'nome']).trim();
 
   if (id == null || academiasId == null || !atividade) {
     return null;
@@ -54,11 +56,7 @@ export function normalizeAtividadeFromApi(raw: unknown): Atividade | null {
 }
 
 export function normalizeAtividadesFromApi(raw: unknown): Atividade[] {
-  if (!Array.isArray(raw)) {
-    return [];
-  }
-
-  return raw
+  return unwrapApiList(raw)
     .map((item) => normalizeAtividadeFromApi(item))
     .filter((item): item is Atividade => item !== null);
 }

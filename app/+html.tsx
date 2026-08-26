@@ -12,11 +12,11 @@ export default function Root({ children }: PropsWithChildren) {
           content="width=device-width, initial-scale=1, viewport-fit=cover"
         />
 
-        <title>MatchPlace</title>
+        <title>Reservas do Morador</title>
 
         <meta
           name="description"
-          content="Reservas de vagas com facilidade e justiça."
+          content="Reservas de espaços do condomínio com facilidade e justiça."
         />
 
         <link
@@ -27,7 +27,7 @@ export default function Root({ children }: PropsWithChildren) {
         <link
           rel="apple-touch-icon"
           sizes="180x180"
-          href="/icon-192.png"
+          href="/apple-touch-icon.png"
         />
 
         <link
@@ -39,7 +39,7 @@ export default function Root({ children }: PropsWithChildren) {
 
         <meta
           name="theme-color"
-          content="#ffffff"
+          content="#0F7A6C"
         />
 
         <meta
@@ -49,7 +49,7 @@ export default function Root({ children }: PropsWithChildren) {
 
         <meta
           name="apple-mobile-web-app-title"
-          content="MatchPlace"
+          content="Reservas do Morador"
         />
 
         <meta

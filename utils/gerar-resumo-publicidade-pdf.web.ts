@@ -68,7 +68,7 @@ export async function gerarResumoPublicidadePdf(
       cellPadding: 2.5,
     },
     headStyles: {
-      fillColor: [36, 86, 168],
+      fillColor: [15, 122, 108],
       textColor: 255,
     },
     alternateRowStyles: {
@@ -139,7 +139,7 @@ export async function gerarResultadosPublicidadeEmpresaPdf(
       cellPadding: 3,
     },
     headStyles: {
-      fillColor: [36, 86, 168],
+      fillColor: [15, 122, 108],
       textColor: 255,
     },
     alternateRowStyles: {

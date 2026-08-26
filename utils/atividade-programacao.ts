@@ -2,67 +2,27 @@ import type { Atividade } from '@/types/atividade';
 
 export type AtividadePadrao = 'Diaria' | 'Semanal' | 'MensalPorSemana';
 
-const MENSAL_POR_SEMANA_ALIASES = new Set([
-  'mensalporsemana',
-  'mensal por semana',
-  'mensalsemana',
-  'padraomensalporsemana',
-]);
-
-function normalizeProgramacaoKey(value: string): string {
-  return value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, ' ');
-}
-
 /**
- * Decide o padrão da atividade.
- * Campo vazio / ausente → Diária (compatível com o legado).
+ * Reservas do Morador usa somente o fluxo mensal por semana.
+ * Não consultar tipoProgramacao, mensalSemana ou outros campos do MatchPlace para escolher o fluxo.
  */
 export function resolveAtividadePadrao(
-  tipoProgramacao: string | null | undefined,
+  _tipoProgramacao?: string | null,
 ): AtividadePadrao {
-  const raw = (tipoProgramacao ?? '').trim();
-
-  if (!raw) {
-    return 'Diaria';
-  }
-
-  const key = normalizeProgramacaoKey(raw);
-
-  if (key === 'diaria') {
-    return 'Diaria';
-  }
-
-  if (key === 'semanal') {
-    return 'Semanal';
-  }
-
-  if (MENSAL_POR_SEMANA_ALIASES.has(key.replace(/\s/g, '')) || MENSAL_POR_SEMANA_ALIASES.has(key)) {
-    return 'MensalPorSemana';
-  }
-
-  if (key === 'mensalporsemana') {
-    return 'MensalPorSemana';
-  }
-
-  return 'Diaria';
+  return 'MensalPorSemana';
 }
 
 export function atividadeUsaMensalPorSemana(
-  atividade: { tipoProgramacao?: string | null } | null | undefined,
+  _atividade?: { tipoProgramacao?: string | null } | null,
 ): boolean {
-  return resolveAtividadePadrao(atividade?.tipoProgramacao) === 'MensalPorSemana';
+  return true;
 }
 
-/** Fluxo MensalPorSemana: só `atividade.tipoProgramacao`. */
-export function resolveUsaMensalPorSemana(params: {
+/** Fluxo do morador: sempre MensalPorSemana. */
+export function resolveUsaMensalPorSemana(_params?: {
   atividade?: Pick<Atividade, 'tipoProgramacao'> | { tipoProgramacao?: string | null } | null;
 }): boolean {
-  return atividadeUsaMensalPorSemana(params.atividade);
+  return true;
 }
 
 /** Limite semanal do associado: só `atividade.limiteReservasSemana` (> 0). */
@@ -78,9 +38,9 @@ export function resolveLimiteReservasSemana(params: {
   return null;
 }
 
-/** Local oferece MensalPorSemana se alguma atividade estiver com esse tipo. */
-export function academiaOfereceMensalPorSemana(params: {
+/** Local oferece MensalPorSemana: neste aplicativo, sempre. */
+export function academiaOfereceMensalPorSemana(_params?: {
   atividades?: Array<Pick<Atividade, 'tipoProgramacao'> | { tipoProgramacao?: string | null }> | null;
 }): boolean {
-  return (params.atividades ?? []).some((atividade) => atividadeUsaMensalPorSemana(atividade));
+  return true;
 }

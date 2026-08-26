@@ -6,6 +6,7 @@ import {
   readPersonName,
   readString,
   readUserId,
+  unwrapApiList,
 } from '@/utils/normalize-api-fields';
 
 export function normalizeUserLocalFromApi(raw: unknown): UserLocalAssociation | null {
@@ -59,11 +60,14 @@ export function normalizeUserLocalFromApi(raw: unknown): UserLocalAssociation | 
 }
 
 export function normalizeUserLocalListFromApi(raw: unknown): UserLocalAssociation[] {
-  if (!Array.isArray(raw)) {
-    return [];
+  const items = unwrapApiList(raw);
+
+  if (items.length === 0 && raw && typeof raw === 'object' && !Array.isArray(raw)) {
+    const single = normalizeUserLocalFromApi(raw);
+    return single ? [single] : [];
   }
 
-  return raw
+  return items
     .map((item) => normalizeUserLocalFromApi(item))
     .filter((item): item is UserLocalAssociation => item !== null);
 }

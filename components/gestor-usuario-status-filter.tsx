@@ -13,7 +13,7 @@ type GestorUsuarioStatusFilterProps = {
 };
 
 const COLORS = {
-  navy: '#1B2B4B',
+  navy: '#3A2154',
   muted: '#5C6475',
   border: '#D5DAE3',
 };
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     color: COLORS.navy,
   },
   optionTextActive: {
-    color: '#2456A8',
+    color: '#0F7A6C',
     fontWeight: '700',
   },
 });

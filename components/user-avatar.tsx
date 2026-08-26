@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   initialsContainer: {
-    backgroundColor: '#2456A8',
+    backgroundColor: '#0F7A6C',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: -2,
     bottom: -2,
-    backgroundColor: '#2456A8',
+    backgroundColor: '#0F7A6C',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,

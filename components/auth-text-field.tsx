@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1B2B4B',
+    color: '#3A2154',
     marginBottom: 8,
   },
   input: {
@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 14,
     fontSize: 19,
-    color: '#1B2B4B',
+    color: '#3A2154',
     backgroundColor: '#FFFFFF',
   },
 });

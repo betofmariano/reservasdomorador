@@ -4,7 +4,7 @@ import { MapaFrequenciaCelula } from '@/components/mapa-frequencia/mapa-frequenc
 import type { FrequenciaStatus } from '@/types/mapa-frequencia';
 
 const COLORS = {
-  navy: '#1B2B4B',
+  navy: '#3A2154',
 };
 
 function LegendaItem({ status, label }: { status: FrequenciaStatus; label: string }) {

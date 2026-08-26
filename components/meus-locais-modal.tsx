@@ -16,6 +16,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import { WEB_MAX_CONTENT_WIDTH } from '@/constants/web-layout';
+import { useAuth } from '@/contexts/auth-context';
+import { useUserContext } from '@/contexts/user-context';
 import { getAcademias } from '@/services/academias-service';
 import { ApiError, getApiErrorMessage } from '@/services/api-client';
 import {
@@ -24,7 +26,7 @@ import {
   enrichAssociationsWithAcademias,
   filterAvailableAcademias,
   getAssociationStatusLabel,
-  getUserLocalAssociations,
+  getUserLocalAssociationsForUser,
   isDuplicateAssociationError,
 } from '@/services/user-local-service';
 import type { Academia } from '@/types/academia';
@@ -40,8 +42,8 @@ type MeusLocaisModalProps = {
 type ModalStep = 'list' | 'add';
 
 const COLORS = {
-  navy: '#1B2B4B',
-  blue: '#2456A8',
+  navy: '#3A2154',
+  blue: '#0F7A6C',
   white: '#FFFFFF',
   gray: '#F4F6FA',
   border: '#E2E6EE',
@@ -58,6 +60,8 @@ const NO_USER_MESSAGE = 'Não foi possível identificar o usuário.';
 const EMPTY_MESSAGE = 'Você ainda não está associado a nenhum local.';
 
 export function MeusLocaisModal({ visible, user, onClose }: MeusLocaisModalProps) {
+  const { authToken } = useAuth();
+  const { refreshUserContext } = useUserContext();
   const { width: screenWidth } = useWindowDimensions();
   const shouldLimitWidth = Platform.OS === 'web' || screenWidth >= WEB_MAX_CONTENT_WIDTH;
 
@@ -135,8 +139,8 @@ export function MeusLocaisModal({ visible, user, onClose }: MeusLocaisModalProps
 
     try {
       const [associationsData, clubsData] = await Promise.all([
-        getUserLocalAssociations(user.id),
-        getAcademias(),
+        getUserLocalAssociationsForUser(user, authToken),
+        getAcademias().catch(() => [] as Academia[]),
       ]);
 
       console.log('Resposta clubesUsuario recebida');
@@ -157,7 +161,7 @@ export function MeusLocaisModal({ visible, user, onClose }: MeusLocaisModalProps
     } finally {
       setIsLoadingLocations(false);
     }
-  }, [user?.id]);
+  }, [authToken, user?.id]);
 
   const loadAvailableClubs = useCallback(async () => {
     setIsLoadingClubs(true);
@@ -230,6 +234,7 @@ export function MeusLocaisModal({ visible, user, onClose }: MeusLocaisModalProps
     try {
       await createUserLocalAssociation(
         buildCreateUserLocalAssociationPayload(user, selectedClubId),
+        authToken,
       );
 
       console.log('Associação criada com sucesso');
@@ -237,7 +242,7 @@ export function MeusLocaisModal({ visible, user, onClose }: MeusLocaisModalProps
       resetAddStepState();
       setStep('list');
       setSuccessMessage(SUCCESS_MESSAGE);
-      await loadLocations();
+      await Promise.all([loadLocations(), refreshUserContext()]);
     } catch (error) {
       if (isDuplicateAssociationError(error)) {
         setAssociateError(DUPLICATE_ERROR);

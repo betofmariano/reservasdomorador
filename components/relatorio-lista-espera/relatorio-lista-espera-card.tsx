@@ -11,7 +11,7 @@ type RelatorioListaEsperaCardProps = {
 };
 
 const COLORS = {
-  navy: '#1B2B4B',
+  navy: '#3A2154',
   border: '#E2E6EE',
   muted: '#5C6475',
   error: '#D64545',

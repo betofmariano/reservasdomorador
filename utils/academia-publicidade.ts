@@ -1,3 +1,4 @@
+import { APP_OCULTAR_PATROCINADORES } from '@/constants/app-branding';
 import type { Academia } from '@/types/academia';
 import type { User } from '@/types/user';
 import { isUserAdministrador, isUserGestor, isUserProfessor } from '@/utils/club-config';
@@ -7,7 +8,7 @@ export function findAcademiaById(academias: Academia[], academiasId: number): Ac
 }
 
 export function isAcademiaSemPublicidade(academia: Academia | null | undefined): boolean {
-  return academia?.semPublicidade === true;
+  return APP_OCULTAR_PATROCINADORES || academia?.semPublicidade === true;
 }
 
 export function isUserSemPublicidade(user: User | null | undefined): boolean {
@@ -22,5 +23,5 @@ export function shouldOcultarPublicidade(
   user: User | null | undefined,
   academiaSemPublicidade: boolean,
 ): boolean {
-  return academiaSemPublicidade || isUserSemPublicidade(user);
+  return APP_OCULTAR_PATROCINADORES || academiaSemPublicidade || isUserSemPublicidade(user);
 }

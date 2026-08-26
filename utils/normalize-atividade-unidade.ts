@@ -1,5 +1,5 @@
 import type { AtividadeUnidade } from '@/types/atividade-unidade';
-import { normalizeRecordId, readString } from '@/utils/normalize-api-fields';
+import { normalizeRecordId, readString, unwrapApiList } from '@/utils/normalize-api-fields';
 
 function readUnidadeLabel(record: Record<string, unknown>): string {
   return readString(record, [
@@ -35,11 +35,7 @@ export function normalizeAtividadeUnidadeFromApi(raw: unknown): AtividadeUnidade
 }
 
 export function normalizeAtividadeUnidadesFromApi(raw: unknown): AtividadeUnidade[] {
-  if (!Array.isArray(raw)) {
-    return [];
-  }
-
-  return raw
+  return unwrapApiList(raw)
     .map((item) => normalizeAtividadeUnidadeFromApi(item))
     .filter((item): item is AtividadeUnidade => item !== null)
     .sort((a, b) => a.unidade.localeCompare(b.unidade, 'pt-BR'));

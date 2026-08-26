@@ -2,7 +2,9 @@ import type { Horario } from '@/types/horario';
 import {
   normalizeBoolean,
   normalizeRecordId,
+  readAcademiaId,
   readString,
+  unwrapApiList,
 } from '@/utils/normalize-api-fields';
 
 function readNumber(record: Record<string, unknown>, keys: string[]): number {
@@ -24,9 +26,9 @@ export function normalizeHorarioFromApi(raw: unknown): Horario | null {
 
   const record = raw as Record<string, unknown>;
   const id = normalizeRecordId(record.id);
-  const academiasId = normalizeRecordId(record.academias_id);
+  const academiasId = readAcademiaId(record);
   const atividadesId = normalizeRecordId(record.atividades_id);
-  const atividade = readString(record, ['atividade']).trim();
+  const atividade = readString(record, ['atividade', 'nome']).trim();
 
   if (id == null || academiasId == null || atividadesId == null || !atividade) {
     return null;
@@ -52,11 +54,7 @@ export function normalizeHorarioFromApi(raw: unknown): Horario | null {
 }
 
 export function normalizeHorariosFromApi(raw: unknown): Horario[] {
-  if (!Array.isArray(raw)) {
-    return [];
-  }
-
-  return raw
+  return unwrapApiList(raw)
     .map((item) => normalizeHorarioFromApi(item))
     .filter((item): item is Horario => item !== null);
 }

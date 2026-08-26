@@ -12,10 +12,11 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { MATCHPOINT_COLORS } from '@/constants/theme';
 import { WEB_MAX_CONTENT_WIDTH } from '@/constants/web-layout';
+import { useAuth } from '@/contexts/auth-context';
 import { useUserContext } from '@/contexts/user-context';
 import { usePickerSheetLayout } from '@/hooks/use-picker-sheet-layout';
 import { ApiError, getApiErrorMessage } from '@/services/api-client';
-import { getReservaAtividadesDataForUser } from '@/services/reserva-atividades-service';
+import { getAtividadesByAcademia } from '@/services/atividades-service';
 import type { ReservaAtividadeOption } from '@/types/mapa-diario-futuro';
 import { sortAtividadesByNomePriority } from '@/utils/atividade-nome-priority';
 
@@ -46,7 +47,8 @@ export function SelecionarAtividadeReservaModal({
   onSelect,
   onAddLocal,
 }: SelecionarAtividadeReservaModalProps) {
-  const { effectiveAcademiasId, permissions, isLoading: isContextLoading } = useUserContext();
+  const { authToken } = useAuth();
+  const { effectiveAcademiasId, currentAcademia, permissions, isLoading: isContextLoading } = useUserContext();
   const [atividades, setAtividades] = useState<ReservaAtividadeOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -74,7 +76,7 @@ export function SelecionarAtividadeReservaModal({
       return;
     }
 
-    if (!effectiveAcademiasId || !permissions.podeUsarLocal) {
+    if (!effectiveAcademiasId || !permissions.podeUsarLocal || !authToken) {
       setAtividades([]);
       setErrorMessage(EMPTY_LOCALS_MESSAGE);
       setIsLoading(false);
@@ -85,12 +87,20 @@ export function SelecionarAtividadeReservaModal({
     setErrorMessage(null);
 
     try {
-      const data = await getReservaAtividadesDataForUser(userId);
-      const atividadesDoContexto = data.atividades.filter(
-        (atividade) => atividade.academias_id === effectiveAcademiasId,
-      );
+      const atividadesDoCondominio = await getAtividadesByAcademia(effectiveAcademiasId, authToken);
+      const localNome = currentAcademia?.nome?.trim() || `Local #${effectiveAcademiasId}`;
 
-      setAtividades(atividadesDoContexto);
+      setAtividades(
+        atividadesDoCondominio
+          .filter((atividade) => atividade.academias_id === effectiveAcademiasId)
+          .map((atividade) => ({
+            id: atividade.id,
+            nome: atividade.atividade,
+            academias_id: atividade.academias_id,
+            localNome,
+            observacao: atividade.observacao,
+          })),
+      );
     } catch (error) {
       if (error instanceof ApiError && error.message) {
         setErrorMessage(error.message.includes('conectar') ? error.message : LOAD_ERROR);
@@ -102,7 +112,7 @@ export function SelecionarAtividadeReservaModal({
     } finally {
       setIsLoading(false);
     }
-  }, [effectiveAcademiasId, isContextLoading, permissions.podeUsarLocal, userId]);
+  }, [authToken, currentAcademia?.nome, effectiveAcademiasId, isContextLoading, permissions.podeUsarLocal, userId]);
 
   useEffect(() => {
     if (!visible) {

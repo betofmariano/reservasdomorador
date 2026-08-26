@@ -11,7 +11,7 @@ const DEFAULT_DOT_SIZE = 10;
 const DEFAULT_CONTAINER_WIDTH = 42;
 
 const COLORS = {
-  blue: '#2456A8',
+  blue: '#0F7A6C',
   muted: '#C5CAD6',
 };
 

@@ -16,9 +16,8 @@ const COLORS = {
   white: MATCHPOINT_COLORS.white,
 };
 
-const TIME_COLUMN_WIDTH = 72;
-const DAY_COLUMN_WIDTH = 72;
-const TABLE_MIN_WIDTH = TIME_COLUMN_WIDTH + DAY_COLUMN_WIDTH * 7;
+const TIME_COLUMN_WIDTH = 52;
+const TABLE_MIN_WIDTH = TIME_COLUMN_WIDTH + 36 * 7;
 const MAPA_HORARIOS_ICON_SIZE = 27;
 
 export function MapaHorariosGrid({ grid }: MapaHorariosGridProps) {
@@ -29,11 +28,15 @@ export function MapaHorariosGrid({ grid }: MapaHorariosGridProps) {
       <View style={styles.table}>
         <View style={styles.headerRow}>
           <View style={[styles.headerCell, styles.timeHeaderCell]}>
-            <Text style={styles.headerText}>Horário</Text>
+            <Text style={styles.headerText} numberOfLines={1}>
+              Horário
+            </Text>
           </View>
           {grid.columns.map((column) => (
             <View key={column.key} style={[styles.headerCell, styles.dayHeaderCell]}>
-              <Text style={styles.headerText}>{column.label}</Text>
+              <Text style={styles.headerText} numberOfLines={1}>
+                {column.label}
+              </Text>
             </View>
           ))}
         </View>
@@ -68,6 +71,7 @@ export function MapaHorariosGridLoading() {
 const styles = StyleSheet.create({
   table: {
     width: '100%',
+    maxWidth: '100%',
     borderWidth: 1,
     borderColor: COLORS.border,
     backgroundColor: COLORS.white,
@@ -105,7 +109,7 @@ const styles = StyleSheet.create({
   },
   dayHeaderCell: {
     flex: 1,
-    minWidth: DAY_COLUMN_WIDTH,
+    minWidth: 0,
   },
   timeDataCell: {
     width: TIME_COLUMN_WIDTH,
@@ -113,10 +117,10 @@ const styles = StyleSheet.create({
   },
   dayDataCell: {
     flex: 1,
-    minWidth: DAY_COLUMN_WIDTH,
+    minWidth: 0,
   },
   headerText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
     color: COLORS.navy,
     textAlign: 'center',

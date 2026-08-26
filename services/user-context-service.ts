@@ -1,4 +1,5 @@
 import { getAcademias } from '@/services/academias-service';
+import { getUserLocalAssociationsForUser } from '@/services/user-local-service';
 import type { Academia } from '@/types/academia';
 import type {
   BuildUserContextInput,
@@ -16,33 +17,6 @@ import {
   resolveEffectiveLocalPrioritario,
 } from '@/utils/user-local-validation';
 import { filterActiveAcademias } from '@/utils/normalize-academia';
-import { normalizeRecordId } from '@/utils/normalize-api-fields';
-
-function buildAssociationFromAuthenticatedVinculo(user: User): UserLocalAssociation | null {
-  const condominioId = normalizeRecordId(user.academias_id ?? user.localPrioritario);
-
-  if (condominioId == null || condominioId <= 0 || user.id <= 0) {
-    return null;
-  }
-
-  return {
-    id: user.userslocalId ?? 0,
-    nome: user.nome,
-    ultimoAcesso: null,
-    users_id: user.id,
-    academias_id: condominioId,
-    aprovado: user.aprovado,
-    administrador: user.administrador,
-    gestor: user.gestor,
-    professor: user.professor === true,
-    bloqueado: user.bloqueado,
-    cienteCancelamento: user.cienteCancelamento,
-    matricula: user.matricula,
-    socioTitulo: user.matricula,
-    complemento: user.complemento,
-    dataRegulamento: null,
-  };
-}
 
 function buildUserLocalSummaries(
   associations: UserLocalAssociation[],
@@ -130,16 +104,16 @@ export function buildUserContextFromRecords(input: BuildUserContextInput): UserC
 
 export async function loadUserContextRecords(
   user: User,
-  _authToken: string,
+  authToken: string,
 ): Promise<{
   associations: UserLocalAssociation[];
   academias: Academia[];
 }> {
   const academias = await getAcademias();
-  const association = buildAssociationFromAuthenticatedVinculo(user);
+  const associations = await getUserLocalAssociationsForUser(user, authToken);
 
   return {
-    associations: association ? [association] : [],
+    associations,
     academias,
   };
 }

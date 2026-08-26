@@ -192,7 +192,14 @@ export function unwrapReservasUsuarioResponse(raw: unknown): unknown[] {
     return [record];
   }
 
-  for (const key of ['jogos', 'reservas', 'items', 'data', 'reservasUsuario'] as const) {
+  for (const key of [
+    'jogos',
+    'reservas',
+    'items',
+    'data',
+    'reservasUsuario',
+    'reservasMensalPorSemana1',
+  ] as const) {
     const value = record[key];
 
     if (Array.isArray(value)) {

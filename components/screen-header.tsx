@@ -14,12 +14,12 @@ import { getActiveRouteName, isAdministracaoChildRoute } from '@/utils/route-acc
 
 const COLORS = {
   menuBackground: '#D9D9D9',
-  divider: '#E89520',
-  navy: '#1B2B4B',
+  divider: '#E8B830',
+  navy: '#3A2154',
 };
 
-const HEADER_LOGO_WIDTH = 96;
-const HEADER_LOGO_HEIGHT = 62;
+const HEADER_LOGO_WIDTH = 72;
+const HEADER_LOGO_HEIGHT = 97;
 const HEADER_AVATAR_SIZE = 68;
 
 type ScreenHeaderProps = {

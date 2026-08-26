@@ -1,13 +1,13 @@
-import { MatchPlaceLogo } from '@/components/matchplace-logo';
+import { AppLogo } from '@/components/matchplace-logo';
 
 type MatchPointLogoProps = {
   size?: 'default' | 'large';
   style?: import('react-native').StyleProp<import('react-native').ImageStyle>;
 };
 
-/** @deprecated Use MatchPlaceLogo */
+/** @deprecated Use AppLogo */
 export function MatchPointLogo(props: MatchPointLogoProps) {
-  return <MatchPlaceLogo {...props} />;
+  return <AppLogo {...props} />;
 }
 
-export { MatchPlaceLogo };
+export { AppLogo, MatchPlaceLogo } from '@/components/matchplace-logo';

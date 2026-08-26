@@ -1,9 +1,11 @@
 import type { MapaDiarioFuturoItem } from '@/types/mapa-diario-futuro';
 import {
   normalizeRecordId,
+  readAcademiaId,
   readCanceladoFlag,
   readString,
   readTimestamp,
+  unwrapApiList,
 } from '@/utils/normalize-api-fields';
 import { readMapaMensalPorSemanaReservaResumoFromMapRecord } from '@/utils/mapa-mensal-por-semana-reserva';
 import {
@@ -39,7 +41,7 @@ export function normalizeMapaMensalPorSemanaFromApi(raw: unknown): MapaDiarioFut
 
   const record = raw as Record<string, unknown>;
   const id = normalizeRecordId(record.id);
-  const academiasId = normalizeRecordId(record.academias_id);
+  const academiasId = readAcademiaId(record);
   const atividadesId = normalizeRecordId(record.atividades_id);
   const dataAtividade = readTimestamp(record, ['dataAtividade', 'data_atividade']);
 
@@ -113,11 +115,7 @@ export function normalizeMapaMensalPorSemanaFromApi(raw: unknown): MapaDiarioFut
 }
 
 export function normalizeMapaMensalPorSemanaListFromApi(raw: unknown): MapaDiarioFuturoItem[] {
-  if (!Array.isArray(raw)) {
-    return [];
-  }
-
-  return raw
+  return unwrapApiList(raw)
     .map((item) => normalizeMapaMensalPorSemanaFromApi(item))
     .filter((item): item is MapaDiarioFuturoItem => item !== null);
 }

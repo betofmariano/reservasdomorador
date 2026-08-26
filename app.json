@@ -1,23 +1,23 @@
 {
   "expo": {
-    "name": "MatchPlace",
-    "slug": "matchplace",
+    "name": "Reservas do Morador",
+    "slug": "reservasdomorador",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
-    "scheme": "matchplace",
+    "scheme": "reservasdomorador",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "br.com.clubeconectado.matchplace"
+      "bundleIdentifier": "br.com.linkpower.reservasdomorador"
     },
     "android": {
-      "package": "br.com.clubeconectado.matchplace",
+      "package": "br.com.linkpower.reservasdomorador",
       "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
-        "backgroundColor": "#000000"
+        "backgroundColor": "#0F4D3A"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
@@ -34,10 +34,10 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 220,
           "resizeMode": "contain",
-          "backgroundColor": "#000000",
+          "backgroundColor": "#F4F6F4",
           "dark": {
             "image": "./assets/images/splash-icon.png",
-            "backgroundColor": "#000000"
+            "backgroundColor": "#F4F6F4"
           }
         }
       ],
@@ -58,10 +58,7 @@
       "baseUrl": "/"
     },
     "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "5dcb0353-4a20-43aa-b45b-25769ef0dc82"
-      }
+      "router": {}
     },
     "owner": "betomariamo"
   }

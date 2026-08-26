@@ -8,5 +8,5 @@ export type GerarListaPresencaPdfInput = {
 };
 
 export async function gerarListaPresencaPdf(_input: GerarListaPresencaPdfInput): Promise<void> {
-  throw new Error('A geração de PDF está disponível na versão web do MatchPlace.');
+  throw new Error('A geração de PDF está disponível na versão web do Reservas do Morador.');
 }

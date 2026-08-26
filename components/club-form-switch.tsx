@@ -8,8 +8,8 @@ type ClubFormSwitchProps = {
 };
 
 const COLORS = {
-  navy: '#1B2B4B',
-  blue: '#2456A8',
+  navy: '#3A2154',
+  blue: '#0F7A6C',
   border: '#E2E6EE',
 };
 

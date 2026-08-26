@@ -11,8 +11,29 @@ import {
 
 export type MapaMensalPorSemanaQuery = {
   academias_id?: number;
+  condominio_id?: number;
   atividades_id?: number;
 };
+
+function filterMapaMensalPorSemana(
+  items: MapaDiarioFuturoItem[],
+  query?: MapaMensalPorSemanaQuery,
+): MapaDiarioFuturoItem[] {
+  const condominioId = query?.condominio_id ?? query?.academias_id;
+  const atividadesId = query?.atividades_id;
+
+  return items.filter((item) => {
+    if (condominioId != null && item.academias_id !== condominioId) {
+      return false;
+    }
+
+    if (atividadesId != null && item.atividades_id !== atividadesId) {
+      return false;
+    }
+
+    return true;
+  });
+}
 
 /**
  * Mapa do fluxo MensalPorSemana. HTTP aponta para /mapamensalporsemana.
@@ -23,7 +44,7 @@ export async function getMapaMensalPorSemana(
 ): Promise<MapaDiarioFuturoItem[]> {
   const data = await authGetRequest<unknown>(buildMapaMensalPorSemanaPath(query), authToken);
 
-  return normalizeMapaMensalPorSemanaListFromApi(data);
+  return filterMapaMensalPorSemana(normalizeMapaMensalPorSemanaListFromApi(data), query);
 }
 
 export async function getMapaMensalPorSemanaById(

@@ -13,10 +13,10 @@ type ProgramacaoAtividadesFiltrosProps = {
 };
 
 const COLORS = {
-  navy: '#1B2B4B',
-  blue: '#2456A8',
+  navy: '#3A2154',
+  blue: '#0F7A6C',
   border: '#D5DAE3',
-  text: '#1B2B4B',
+  text: '#3A2154',
   error: '#D64545',
   muted: '#5C6475',
   placeholder: '#5C6475',

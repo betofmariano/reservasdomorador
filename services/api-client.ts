@@ -20,6 +20,10 @@ function extractErrorMessage(payload: unknown): string | null {
 
   const record = payload as Record<string, unknown>;
 
+  if (typeof record.mensagem === 'string' && record.mensagem.trim()) {
+    return record.mensagem.trim();
+  }
+
   if (typeof record.message === 'string' && record.message.trim()) {
     return record.message;
   }

@@ -64,7 +64,7 @@ function computeTableMinWidth(options: {
 }
 
 const COLORS = {
-  navy: '#1B2B4B',
+  navy: '#3A2154',
   error: '#D64545',
   border: '#E2E6EE',
 };

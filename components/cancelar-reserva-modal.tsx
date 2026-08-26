@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 
 import { WEB_MAX_CONTENT_WIDTH } from '@/constants/web-layout';
+import { useAppToast } from '@/contexts/app-toast-context';
 import { useClubSelectionModalLayout } from '@/hooks/use-club-selection-modal-layout';
 import { ApiError, getApiErrorMessage } from '@/services/api-client';
 import { cancelarReservaForUser } from '@/services/reserva-horario-flow-service';
@@ -27,13 +28,32 @@ type CancelarReservaModalProps = {
 };
 
 const COLORS = {
-  navy: '#1B2B4B',
+  navy: '#3A2154',
   white: '#FFFFFF',
   error: '#D64545',
 };
 
 const CANCEL_ERROR_MESSAGE = 'Não foi possível cancelar esta reserva. Tente novamente.';
 const DEADLINE_ERROR_MESSAGE = 'O prazo para cancelamento desta reserva já expirou.';
+const CANCEL_SUCCESS_MESSAGE = 'Reserva cancelada com sucesso.';
+
+function readBackendMensagem(payload: unknown): string | null {
+  if (!payload || typeof payload !== 'object') {
+    return null;
+  }
+
+  const record = payload as Record<string, unknown>;
+
+  for (const key of ['mensagem', 'message'] as const) {
+    const value = record[key];
+
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
+    }
+  }
+
+  return null;
+}
 
 function isReservaJaCanceladaError(error: unknown): boolean {
   if (error instanceof ApiError && error.status === 404) {
@@ -61,6 +81,7 @@ export function CancelarReservaModal({
 }: CancelarReservaModalProps) {
   const [isCancelling, setIsCancelling] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { showToast } = useAppToast();
   const { overlayStyle, contentStyle } = useClubSelectionModalLayout({
     maxWidth: WEB_MAX_CONTENT_WIDTH,
   });
@@ -91,14 +112,21 @@ export function CancelarReservaModal({
       return;
     }
 
+    if (reserva.users_id !== user.id && reserva.responsavel_id !== user.id) {
+      setErrorMessage('Esta reserva não pertence ao usuário autenticado.');
+      return;
+    }
+
     setIsCancelling(true);
     setErrorMessage(null);
 
     const reservaId = reserva.id;
 
     try {
-      await cancelarReservaForUser(reserva, user, authToken);
+      const response = await cancelarReservaForUser(reserva, user, authToken);
+      const mensagem = readBackendMensagem(response) ?? CANCEL_SUCCESS_MESSAGE;
 
+      showToast(mensagem, { variant: 'success' });
       onClose();
       onSuccess(reservaId);
     } catch (error) {
@@ -145,7 +173,9 @@ export function CancelarReservaModal({
             {reserva.unidadeNome?.trim() ? (
               <Text style={styles.detailText}>Unidade: {reserva.unidadeNome.trim()}</Text>
             ) : null}
-            <Text style={styles.detailText}>Local: {reserva.localNome}</Text>
+            {reserva.localNome?.trim() ? (
+              <Text style={styles.detailText}>Local: {reserva.localNome.trim()}</Text>
+            ) : null}
           </View>
 
           {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}

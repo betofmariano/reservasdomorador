@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 
 import { CriarMapaDiarioPanel } from '@/components/criar-mapa-diario-panel';
 import { MenuActionButton } from '@/components/menu-action-button';
+import { APP_OCULTAR_PATROCINADORES } from '@/constants/app-branding';
 import { MATCHPOINT_COLORS } from '@/constants/theme';
 import { useUserContext } from '@/contexts/user-context';
 import { useAdministracaoMenuAccess, type AdministracaoMenuAccess } from '@/hooks/use-administracao-menu-access';
@@ -36,7 +37,11 @@ const ADMIN_ONLY_ITEMS: AdminMenuItem[] = [
   { label: 'Lista de Logados', route: '/lista-logados' },
   { label: 'Publicidade', route: '/resumo-publicidade' },
   { label: 'Aprovar Publicidade', route: '/aprovar-publicidade' },
-];
+].filter(
+  (item) =>
+    !APP_OCULTAR_PATROCINADORES ||
+    (item.route !== '/resumo-publicidade' && item.route !== '/aprovar-publicidade'),
+);
 
 const CLUB_ADMIN_ITEMS: AdminMenuItem[] = [
   { label: 'Lista de Usuários', route: '/lista-usuarios-gestor' },

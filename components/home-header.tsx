@@ -11,12 +11,12 @@ import { useUserContext } from '@/contexts/user-context';
 import type { User } from '@/types/user';
 
 const COLORS = {
-  divider: '#E89520',
-  navy: '#1B2B4B',
+  divider: '#E8B830',
+  navy: '#3A2154',
 };
 
-const HEADER_LOGO_WIDTH = 96;
-const HEADER_LOGO_HEIGHT = 62;
+const HEADER_LOGO_WIDTH = 72;
+const HEADER_LOGO_HEIGHT = 97;
 const HEADER_AVATAR_SIZE = 68;
 
 type HomeHeaderProps = {

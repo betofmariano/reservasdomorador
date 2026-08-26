@@ -13,7 +13,7 @@ import {
 export type { GerarMapaFrequenciaPdfInput };
 
 const PDF_COLORS = {
-  navy: [27, 43, 75] as [number, number, number],
+  navy: [58, 33, 84] as [number, number, number],
   headerBg: [244, 246, 250] as [number, number, number],
   white: [255, 255, 255] as [number, number, number],
   headerBorder: [197, 197, 197] as [number, number, number],

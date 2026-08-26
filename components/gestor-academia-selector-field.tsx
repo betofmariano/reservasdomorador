@@ -22,7 +22,7 @@ type GestorAcademiaSelectorFieldProps = {
 
 const COLORS = {
   muted: '#5C6475',
-  navy: '#1B2B4B',
+  navy: '#3A2154',
 };
 
 export function GestorAcademiaSelectorField({

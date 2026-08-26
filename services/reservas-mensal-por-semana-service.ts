@@ -1,10 +1,10 @@
 import {
   API_ENDPOINTS,
-  buildReservasMensalPorSemanaItemPath,
+  buildCancelarReservaMensalPorSemanaPath,
   buildReservasMensalPorSemanaListPath,
   buildReservasUsuarioMensalPorSemanaPath,
 } from '@/constants/api';
-import { authDeleteRequest, authGetRequest, authPostRequest } from '@/services/api-client';
+import { authGetRequest, authPatchRequest, authPostRequest } from '@/services/api-client';
 import { notifyCriarReservaWhatsAppIfNeeded } from '@/services/reservas-service';
 import type {
   CriarReservaMensalPorSemanaPayload,
@@ -32,22 +32,29 @@ export async function getReservasUsuarioMensalPorSemana(
   return enrichReservasUsuarioOwner(normalizeReservasUsuarioListFromApi(data), userId);
 }
 
-/** Reservas válidas do usuário no local, incluindo passadas, para validar limite semanal. */
+/** Reservas válidas do usuário no condomínio, incluindo passadas, para validar limite semanal. */
 export async function getReservasMensalPorSemanaLimiteSemanalUsuario(
   userId: number,
   academiasId: number,
   authToken: string,
 ): Promise<ReservasUsuarioResponse> {
-  if (userId <= 0 || academiasId <= 0) {
+  if (userId <= 0) {
     return [];
   }
 
-  const reservas = await getReservasMensalPorSemanaByAcademia(academiasId, authToken);
+  const reservas = await getReservasUsuarioMensalPorSemana(userId, authToken);
 
-  // Inclui canceladas para o client liberar células/mapa; o limite semanal ignora cancelado.
-  return reservas.filter(
-    (reserva) => reserva.users_id === userId || reserva.responsavel_id === userId,
-  );
+  return reservas.filter((reserva) => {
+    if (reserva.users_id !== userId && reserva.responsavel_id !== userId) {
+      return false;
+    }
+
+    if (academiasId > 0 && reserva.academias_id > 0 && reserva.academias_id !== academiasId) {
+      return false;
+    }
+
+    return true;
+  });
 }
 
 export async function getReservasMensalPorSemanaByAcademia(
@@ -66,7 +73,11 @@ export async function excluirReservaMensalPorSemana(
   reservasMensalPorSemanaId: number,
   authToken: string,
 ): Promise<unknown> {
-  return authDeleteRequest(buildReservasMensalPorSemanaItemPath(reservasMensalPorSemanaId), authToken);
+  return authPatchRequest(
+    buildCancelarReservaMensalPorSemanaPath(reservasMensalPorSemanaId),
+    authToken,
+    {},
+  );
 }
 
 export async function criarReservaMensalPorSemana(
@@ -81,11 +92,7 @@ export async function criarReservaMensalPorSemana(
       API_ENDPOINTS.criarReservaMensalPorSemana,
       authToken,
       {
-        users_id: payload.users_id,
         mapamensalporsemana_id: payload.mapamensalporsemana_id,
-        ...(payload.atividadeunidade_id != null && payload.atividadeunidade_id > 0
-          ? { atividadeunidade_id: payload.atividadeunidade_id }
-          : {}),
       },
     ),
   );

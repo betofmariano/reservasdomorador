@@ -26,10 +26,10 @@ export type PatrocinadorShowcaseSection = {
 /** Conteúdo estático da página /patrocinador — substituir pela API depois. */
 export const PATROCINADOR_APPS: PatrocinadorAppCard[] = [
   {
-    id: 'matchplace',
-    nome: 'MatchPlace',
-    headline: 'Gestão inteligente de reservas para atividades de alta demanda',
-    imageUrl: bubbleImage('f1773586875896x384789718223429900/matchplace.png'),
+    id: 'reservasdomorador',
+    nome: 'Reservas do Morador',
+    headline: 'Reservas de espaços do condomínio com facilidade e justiça',
+    imageUrl: '/icon-512.png',
   },
   {
     id: 'matchpoint',

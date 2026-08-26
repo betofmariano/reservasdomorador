@@ -27,8 +27,8 @@ import { matchesSearchText } from '@/utils/search-text';
 
 const COLORS = {
   background: '#FFFFFF',
-  navy: '#1B2B4B',
-  blue: '#2456A8',
+  navy: '#3A2154',
+  blue: '#0F7A6C',
   error: '#D64545',
   muted: '#5C6475',
   border: '#D5DAE3',

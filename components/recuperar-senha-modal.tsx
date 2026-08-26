@@ -51,8 +51,8 @@ type RecuperarSenhaModalProps = {
 };
 
 const COLORS = {
-  navy: '#1B2B4B',
-  blue: '#2456A8',
+  navy: '#3A2154',
+  blue: '#0F7A6C',
   white: '#FFFFFF',
   error: '#D64545',
   muted: '#5C6475',
@@ -319,7 +319,7 @@ export function RecuperarSenhaModal({
         {renderStepLabel(1)}
         <Text style={styles.title}>Recuperar senha</Text>
         <Text style={styles.description}>
-          Informe o telefone cadastrado no MatchPlace. Enviaremos um código de recuperação por
+          Informe o telefone cadastrado no Reservas do Morador. Enviaremos um código de recuperação por
           WhatsApp para confirmar sua identidade antes de alterar a senha.
         </Text>
 
@@ -408,7 +408,7 @@ export function RecuperarSenhaModal({
         {renderStepLabel(3)}
         <Text style={styles.title}>Alterar senha</Text>
         <Text style={styles.description}>
-          Código confirmado. Agora crie uma nova senha de acesso para sua conta MatchPlace.
+          Código confirmado. Agora crie uma nova senha de acesso para sua conta Reservas do Morador.
         </Text>
         <Text style={styles.infoText}>
           Após salvar, entraremos automaticamente na sua conta — você não precisará fazer login

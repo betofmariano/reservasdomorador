@@ -29,14 +29,14 @@ type GestorUsuarioListItemRowProps = {
 };
 
 const COLORS = {
-  navy: '#1B2B4B',
-  blue: '#2456A8',
+  navy: '#3A2154',
+  blue: '#0F7A6C',
   muted: '#5C6475',
   border: '#E2E6EE',
   danger: '#D64545',
   approve: '#1F8A4C',
   professor: '#6B4FA8',
-  gestor: '#2456A8',
+  gestor: '#0F7A6C',
 };
 
 export function GestorUsuarioListItemRow({

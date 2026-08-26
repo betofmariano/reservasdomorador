@@ -1,8 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
-export const PUBLICIDADE_VIEW_STORAGE_KEY = 'matchplace:last-ad-view-at';
-const PUBLICIDADE_IMPRESSION_STORAGE_PREFIX = 'matchplace:impression:';
+export const PUBLICIDADE_VIEW_STORAGE_KEY = 'reservasdomorador:last-ad-view-at';
+const PUBLICIDADE_IMPRESSION_STORAGE_PREFIX = 'reservasdomorador:impression:';
 const PUBLICIDADE_IMPRESSION_DEDUPE_MS = 15 * 60 * 1000;
 
 function canUseLocalStorage(): boolean {

@@ -1,8 +1,8 @@
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 
-/** Chave legada (AsyncStorage/web); inválida no SecureStore nativo. */
-const LEGACY_AUTH_TOKEN_KEY = '@matchplace:authToken';
+/** Chave web legado deste app; inválida no SecureStore nativo. Sem fallback do MatchPlace. */
+const LEGACY_AUTH_TOKEN_KEY = '@reservasdomorador:authToken';
 
 function canUseLocalStorage(): boolean {
   return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';

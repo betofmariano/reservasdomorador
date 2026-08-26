@@ -28,11 +28,11 @@ import type { GerarMapaFrequenciaPdfInput } from '@/utils/gerar-mapa-frequencia-
 
 const COLORS = {
   background: '#FFFFFF',
-  navy: '#1B2B4B',
-  blue: '#2456A8',
+  navy: '#3A2154',
+  blue: '#0F7A6C',
   error: '#D64545',
   muted: '#5C6475',
-  accent: '#E89520',
+  accent: '#E8B830',
 };
 
 const GRID_MIN_WIDTH = MAPA_FREQUENCIA_REPORT_WIDTH;

@@ -1,13 +1,7 @@
 import { getAtividadeUnidadesByAtividade } from '@/services/atividade-unidade-service';
 import { getAcademias } from '@/services/academias-service';
-import {
-  enrichListaEsperaWithAcademias,
-  getListaEsperaForUser,
-} from '@/services/lista-espera-service';
-import { getRelatorioListaEsperaByAcademia } from '@/services/relatorio-lista-espera-service';
 import { filterActiveFutureReservas } from '@/services/reservas-service';
 import { getReservasUsuarioForUser } from '@/services/reserva-horario-flow-service';
-import { getUserLocalAssociations } from '@/services/user-local-service';
 import type { Academia } from '@/types/academia';
 import type { ListaEsperaSummary, ReservaParticipanteSummary, ReservaSummary } from '@/types/home-summary';
 import type { JogoParticipante } from '@/types/jogo';
@@ -27,7 +21,6 @@ import {
 } from '@/utils/reserva-atividade';
 import type { Atividade } from '@/types/atividade';
 
-const LISTA_ESPERA_ERROR_MESSAGE = 'Não foi possível carregar sua lista de espera.';
 const RESERVAS_ERROR_MESSAGE = 'Não foi possível carregar suas reservas.';
 
 export type HomeSummaryFetchResult = {
@@ -38,7 +31,15 @@ export type HomeSummaryFetchResult = {
 };
 
 function getAcademiaName(academiasId: number, academiasById: Map<number, Academia>): string {
-  return academiasById.get(academiasId)?.nome ?? `Local #${academiasId}`;
+  if (academiasId <= 0) {
+    return '';
+  }
+
+  return academiasById.get(academiasId)?.nome?.trim() || `Local #${academiasId}`;
+}
+
+function resolveReservaAcademiasId(reserva: Pick<ReservaUsuario, 'academias_id'>, fallbackAcademiasId: number): number {
+  return reserva.academias_id > 0 ? reserva.academias_id : fallbackAcademiasId;
 }
 
 function getModalidadeLabel(reserva: Pick<ReservaUsuario, 'jogoDuplas'>): string | null {
@@ -49,8 +50,26 @@ function getModalidadeLabel(reserva: Pick<ReservaUsuario, 'jogoDuplas'>): string
   return 'Simples';
 }
 
-function sortReservasByDataAtividade<T extends { dataAtividade: number }>(entries: T[]): T[] {
-  return [...entries].sort((a, b) => a.dataAtividade - b.dataAtividade);
+function sortReservasByDataHorarioAtividadeUnidade<
+  T extends { dataAtividade: number; atividade?: string | null; unidadeNome?: string | null },
+>(entries: T[]): T[] {
+  return [...entries].sort((a, b) => {
+    if (a.dataAtividade !== b.dataAtividade) {
+      return a.dataAtividade - b.dataAtividade;
+    }
+
+    const atividadeCompare = (a.atividade ?? '').localeCompare(b.atividade ?? '', 'pt-BR', {
+      sensitivity: 'base',
+    });
+
+    if (atividadeCompare !== 0) {
+      return atividadeCompare;
+    }
+
+    return (a.unidadeNome ?? '').localeCompare(b.unidadeNome ?? '', 'pt-BR', {
+      sensitivity: 'base',
+    });
+  });
 }
 
 async function buildUnidadesLabelByIdForReservas(
@@ -149,6 +168,7 @@ export function mapReservaUsuarioToReservaSummary(
   academiasById: Map<number, Academia>,
   atividadesById: Map<number, Atividade> = new Map(),
   unidadesById: Map<number, string> = new Map(),
+  fallbackAcademiasId = 0,
 ): ReservaSummary {
   const participantesView = buildJogoParticipantesView(
     reserva as unknown as Parameters<typeof buildJogoParticipantesView>[0],
@@ -165,6 +185,7 @@ export function mapReservaUsuarioToReservaSummary(
     (unidadeId != null ? unidadesById.get(unidadeId)?.trim() : null) ||
     reserva.unidadeNome?.trim() ||
     null;
+  const academiasId = resolveReservaAcademiasId(reserva, fallbackAcademiasId);
 
   return {
     id: reserva.id,
@@ -173,10 +194,10 @@ export function mapReservaUsuarioToReservaSummary(
     mapadiario_id: reserva.mapadiario_id,
     dataAtividade: reserva.dataAtividade,
     quadra: reserva.quadra,
-    academias_id: reserva.academias_id,
+    academias_id: academiasId,
     atividades_id: reserva.atividades_id,
     semana: reserva.semana,
-    localNome: getAcademiaName(reserva.academias_id, academiasById),
+    localNome: getAcademiaName(academiasId, academiasById),
     atividade: resolveReservaAtividadeNome(reserva, atividadesById),
     modalidade: resolveReservaAtividadeNome(reserva, atividadesById) ? null : getModalidadeLabel(reserva),
     atividadeunidade_id: unidadeId,
@@ -244,7 +265,7 @@ export function pickNearestReserva(reservas: ReservaSummary[]): ReservaSummary |
     return null;
   }
 
-  return sortReservasByDataAtividade([...reservas])[0];
+  return sortReservasByDataHorarioAtividadeUnidade([...reservas])[0];
 }
 
 export function pickNearestListaEspera(
@@ -265,17 +286,16 @@ export async function fetchHomeSummary(
   console.log('Carregando resumo da Home');
 
   let reservasError: string | null = null;
-  let listaEsperaError: string | null = null;
   let reservas: ReservaSummary[] = [];
-  let listasEspera: ListaEsperaSummary[] = [];
 
-  const [associationsResult, clubsResult] = await Promise.allSettled([
-    getUserLocalAssociations(userId),
-    getAcademias(),
-  ]);
+  let academias: Academia[] = [];
 
-  const academias =
-    clubsResult.status === 'fulfilled' ? clubsResult.value : ([] as Academia[]);
+  try {
+    academias = await getAcademias();
+  } catch {
+    academias = [];
+  }
+
   const academiasById = new Map(academias.map((academia) => [academia.id, academia]));
 
   try {
@@ -291,60 +311,28 @@ export async function fetchHomeSummary(
         ? buildUnidadesLabelByIdForReservas(activeReservas, authToken)
         : Promise.resolve(new Map<number, string>()),
     ]);
-    reservas = sortReservasByDataAtividade(
+    reservas = sortReservasByDataHorarioAtividadeUnidade(
       activeReservas.map((reserva) =>
-        mapReservaUsuarioToReservaSummary(reserva, academiasById, atividadesById, unidadesById),
+        mapReservaUsuarioToReservaSummary(
+          reserva,
+          academiasById,
+          atividadesById,
+          unidadesById,
+          academiasId,
+        ),
       ),
     );
   } catch {
     reservasError = RESERVAS_ERROR_MESSAGE;
   }
 
-  if (associationsResult.status === 'fulfilled') {
-    const clubIds = associationsResult.value.map((association) => association.academias_id);
-
-    try {
-      const entries = await getListaEsperaForUser(userId, clubIds, authToken);
-      const activeEntries = filterActiveFutureListaEspera(entries);
-      const uniqueAcademiaIds = [...new Set(activeEntries.map((entry) => entry.academias_id))];
-      const academiaResults = await Promise.allSettled(
-        uniqueAcademiaIds.map((academiasId) =>
-          getRelatorioListaEsperaByAcademia(academiasId, authToken),
-        ),
-      );
-      const allEntries = academiaResults.flatMap((result) =>
-        result.status === 'fulfilled' ? result.value : [],
-      );
-      const posicaoMap = buildListaEsperaPosicaoMap(activeEntries, allEntries);
-      const enriched = enrichListaEsperaWithAcademias(activeEntries, academias);
-      const sorted = sortListaEsperaByNearest(
-        enriched.map((item) => {
-          const posicaoInfo = posicaoMap.get(item.registro.id);
-
-          return mapRegistroToListaEsperaSummary(
-            item.registro,
-            academiasById,
-            posicaoInfo?.posicao ?? null,
-            posicaoInfo?.totalNaLista ?? null,
-          );
-        }),
-      );
-      listasEspera = sorted;
-    } catch {
-      listaEsperaError = LISTA_ESPERA_ERROR_MESSAGE;
-    }
-  } else {
-    listaEsperaError = LISTA_ESPERA_ERROR_MESSAGE;
-  }
-
   console.log('Reservas encontradas:', reservas.length);
-  console.log('Listas de espera encontradas:', listasEspera.length);
   console.log('Resumo da Home atualizado');
 
   return {
     reservas,
-    listasEspera,
+    listasEspera: [],
     reservasError,
-    listaEsperaError,
+    listaEsperaError: null,
   };
 }

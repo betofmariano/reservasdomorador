@@ -1,6 +1,6 @@
 import { formatAssociacaoLocalFallback } from '@/constants/associacao-local-labels';
 import { API_ENDPOINTS, buildUserLocalAssociationsPath } from '@/constants/api';
-import { ApiError, getRequest, postRequest } from '@/services/api-client';
+import { ApiError, authGetRequest, authPostRequest, getRequest, postRequest } from '@/services/api-client';
 import type { Academia } from '@/types/academia';
 import type {
   AssociatedLocalDisplay,
@@ -13,6 +13,19 @@ import { sortByClubNome } from '@/utils/club-sort';
 import { normalizeRecordId } from '@/utils/normalize-api-fields';
 import { normalizeUserLocalListFromApi } from '@/utils/normalize-user-local';
 import type { User } from '@/types/user';
+
+async function requestUserLocalRecords(
+  userId: number,
+  authToken?: string | null,
+): Promise<unknown> {
+  const path = buildUserLocalAssociationsPath(userId);
+
+  if (authToken) {
+    return authGetRequest<unknown>(path, authToken);
+  }
+
+  return getRequest<unknown>(path);
+}
 
 export function findUserLocalAssociationForAcademia(
   associations: UserLocalAssociation[],
@@ -29,13 +42,62 @@ export function findUserLocalAssociationForAcademia(
   );
 }
 
+export function buildAssociationFromUser(user: User): UserLocalAssociation | null {
+  const condominioId = normalizeRecordId(user.academias_id ?? user.localPrioritario);
+
+  if (condominioId == null || condominioId <= 0 || user.id <= 0) {
+    return null;
+  }
+
+  return {
+    id: user.userslocalId ?? 0,
+    nome: user.nome,
+    ultimoAcesso: null,
+    users_id: user.id,
+    academias_id: condominioId,
+    aprovado: user.aprovado,
+    administrador: user.administrador,
+    gestor: user.gestor,
+    professor: user.professor === true,
+    bloqueado: user.bloqueado,
+    cienteCancelamento: user.cienteCancelamento,
+    matricula: user.matricula,
+    socioTitulo: user.matricula,
+    complemento: user.complemento,
+    dataRegulamento: null,
+  };
+}
+
 export async function getUserLocalAssociations(
   userId: number,
+  authToken?: string | null,
 ): Promise<UserLocalAssociationsResponse> {
-  const data = await getRequest<unknown>(buildUserLocalAssociationsPath(userId));
-  const associations = normalizeUserLocalListFromApi(data);
+  const data = await requestUserLocalRecords(userId, authToken);
+  const associations = normalizeUserLocalListFromApi(data).filter(
+    (association) => association.users_id === userId,
+  );
 
   console.log('Resposta meusLocais (associações):', associations.length);
+
+  return associations;
+}
+
+export async function getUserLocalAssociationsForUser(
+  user: User,
+  authToken?: string | null,
+): Promise<UserLocalAssociationsResponse> {
+  let associations: UserLocalAssociation[] = [];
+
+  try {
+    associations = await getUserLocalAssociations(user.id, authToken);
+  } catch (error) {
+    console.warn('GET /meusLocais indisponível; usando vínculo da sessão.', error);
+  }
+
+  if (associations.length === 0) {
+    const fallback = buildAssociationFromUser(user);
+    associations = fallback ? [fallback] : [];
+  }
 
   return associations;
 }
@@ -56,8 +118,19 @@ export function buildCreateUserLocalAssociationPayload(
 
 export async function createUserLocalAssociation(
   payload: CreateUserLocalPayload,
+  authToken?: string | null,
 ): Promise<CreateUserLocalResponse> {
-  return postRequest<CreateUserLocalResponse>(API_ENDPOINTS.userslocal, payload);
+  const body = {
+    users_id: payload.users_id,
+    condominio_id: payload.academias_id,
+    nome: payload.nome,
+  };
+
+  if (authToken) {
+    return authPostRequest<CreateUserLocalResponse>(API_ENDPOINTS.userslocal, authToken, body);
+  }
+
+  return postRequest<CreateUserLocalResponse>(API_ENDPOINTS.userslocal, body);
 }
 
 export function isDuplicateAssociationError(error: unknown): boolean {

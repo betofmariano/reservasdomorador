@@ -16,10 +16,10 @@ type ProgramacaoAtividadesRowProps = {
 };
 
 const COLORS = {
-  navy: '#1B2B4B',
+  navy: '#3A2154',
   border: '#F9B233',
   error: '#D64545',
-  blue: '#2456A8',
+  blue: '#0F7A6C',
 };
 
 export function ProgramacaoAtividadesRow({

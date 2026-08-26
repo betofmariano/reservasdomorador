@@ -1,5 +1,5 @@
 import { ASSOCIACAO_LOCAL_LABELS } from '@/constants/associacao-local-labels';
-import { API_ENDPOINTS, buildPesquisarUsuarioPath, XANO_API_BASE_URL } from '@/constants/api';
+import { API_ENDPOINTS, buildGetUserPath, buildPesquisarUsuarioPath, XANO_API_BASE_URL } from '@/constants/api';
 import { normalizePhoneForApi } from '@/constants/auth';
 import { ApiError, authGetRequest, authPatchRequest, getRequest, postRequest } from '@/services/api-client';
 import type {
@@ -17,7 +17,12 @@ import type {
 import {
   normalizeEsqueceuCadastroUsuarios,
 } from '@/utils/normalize-esqueceu-cadastro';
-import type { SignupFoneRequest, SignupFoneResponse } from '@/types/signup';
+import {
+  resolveSignupCondominioId,
+  SIGNUP_CONDOMINIO_REQUIRED_MESSAGE,
+  type SignupFoneRequest,
+  type SignupFoneResponse,
+} from '@/types/signup';
 import { extractAuthToken } from '@/utils/auth-token';
 import { extractPhotoUrlFromApiPayload } from '@/utils/user-photo';
 import { normalizeUserFromApi } from '@/utils/normalize-user';
@@ -338,6 +343,12 @@ function buildLoginResponse(payload: unknown): LoginResponse {
 }
 
 export async function buildSignupFoneFormData(data: SignupFoneRequest): Promise<FormData> {
+  const condominioId = resolveSignupCondominioId(data.condominio_id);
+
+  if (condominioId == null) {
+    throw new ApiError(SIGNUP_CONDOMINIO_REQUIRED_MESSAGE);
+  }
+
   const formData = createMultipartFormData();
 
   formData.append('nome', data.nome.trim());
@@ -345,7 +356,7 @@ export async function buildSignupFoneFormData(data: SignupFoneRequest): Promise<
   formData.append('password', data.password);
   formData.append('matricula', data.matricula);
   formData.append('complemento', data.complemento);
-  formData.append('academias_id', String(data.academias_id));
+  formData.append('condominio_id', String(condominioId));
   formData.append(SIGNUP_FORM_FIELDS.foto, data.Foto);
   formData.append(
     SIGNUP_FORM_FIELDS.ultimaPublicidadeData,
@@ -418,10 +429,30 @@ export async function sendWzapCadastroDuplicado(telefoneLimpo: string): Promise<
 
 export async function getMe(token: string): Promise<User> {
   const payload = await authGetRequest<unknown>(API_ENDPOINTS.auth.me, token);
-  const user = normalizeUserFromApi(payload);
+  let user = normalizeUserFromApi(payload);
 
   if (!user.id) {
     throw new ApiError('Não foi possível carregar seus dados. Faça login novamente.', 401);
+  }
+
+  if (!user.telefoneLimpo && !user.telefone) {
+    try {
+      const extraPayload = await authGetRequest<unknown>(buildGetUserPath(user.id), token);
+      const extraUser = normalizeUserFromApi(extraPayload);
+      const telefoneLimpo = extraUser.telefoneLimpo || extraUser.telefone;
+
+      if (telefoneLimpo) {
+        user = {
+          ...user,
+          telefone: extraUser.telefone || telefoneLimpo,
+          telefoneLimpo,
+          telefoneConfirmado: extraUser.telefoneConfirmado || telefoneLimpo,
+          telefoneCorrigido: extraUser.telefoneCorrigido || user.telefoneCorrigido,
+        };
+      }
+    } catch {
+      // Mantém os dados do /auth/me se /getUser não estiver disponível.
+    }
   }
 
   if (user.bloqueado) {

@@ -20,7 +20,7 @@ type ListaUsuariosSuspensosRowProps = {
 };
 
 const COLORS = {
-  navy: '#1B2B4B',
+  navy: '#3A2154',
   border: '#F9B233',
   active: '#1F8A4C',
   ended: '#5C6475',

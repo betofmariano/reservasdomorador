@@ -100,6 +100,10 @@ export function readString(record: Record<string, unknown>, keys: string[]): str
     if (typeof value === 'string') {
       return value;
     }
+
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return String(value);
+    }
   }
 
   return '';
@@ -125,8 +129,47 @@ export function readPersonPhoto(record: Record<string, unknown>): string {
   return readPersonPhotoFromRecord(record);
 }
 
+function readNestedAcademiaId(record: Record<string, unknown>): unknown {
+  for (const key of ['_condominio', 'condominio', '_academias', 'academias'] as const) {
+    const nested = record[key];
+
+    if (nested && typeof nested === 'object' && !Array.isArray(nested)) {
+      const id = (nested as Record<string, unknown>).id;
+
+      if (id != null) {
+        return id;
+      }
+    }
+  }
+
+  return null;
+}
+
 export function readAcademiaId(record: Record<string, unknown>): number | null {
-  return normalizeRecordId(record.academias_id ?? record.condominio_id);
+  return normalizeRecordId(
+    record.academias_id ??
+      record.condominio_id ??
+      record.condominios_id ??
+      readNestedAcademiaId(record),
+  );
+}
+
+export function unwrapApiList(raw: unknown): unknown[] {
+  if (Array.isArray(raw)) {
+    return raw;
+  }
+
+  if (!raw || typeof raw !== 'object') {
+    return [];
+  }
+
+  for (const value of Object.values(raw as Record<string, unknown>)) {
+    if (Array.isArray(value)) {
+      return value;
+    }
+  }
+
+  return [];
 }
 
 export function readUserId(record: Record<string, unknown>): number | null {

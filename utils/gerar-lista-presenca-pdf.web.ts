@@ -67,7 +67,7 @@ export async function gerarListaPresencaPdf(input: GerarListaPresencaPdfInput): 
       overflow: 'linebreak',
     },
     headStyles: {
-      fillColor: [36, 86, 168],
+      fillColor: [15, 122, 108],
       textColor: 255,
       fontStyle: 'bold',
     },

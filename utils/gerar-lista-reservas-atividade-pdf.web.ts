@@ -63,7 +63,7 @@ export async function gerarListaReservasAtividadePdf(
       cellPadding: 2.5,
     },
     headStyles: {
-      fillColor: [36, 86, 168],
+      fillColor: [15, 122, 108],
       textColor: 255,
     },
     alternateRowStyles: {

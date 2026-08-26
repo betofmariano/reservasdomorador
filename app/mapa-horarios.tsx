@@ -178,9 +178,11 @@ export default function MapaHorariosScreen() {
                 error={atividadesLoadError}
                 onRetry={() => void fetchAtividades()}
                 disabled={!selectedClubId}
+                hideLabel
                 placeholder="Selecione a atividade"
                 emptyPlaceholder="Nenhuma atividade cadastrada"
                 modalTitle="Selecione a atividade"
+                style={styles.atividadeSelector}
               />
 
               {!selectedAtividadeId ? (
@@ -233,6 +235,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.blue,
     marginBottom: 16,
+    width: '100%',
+    textAlign: 'center',
+  },
+  atividadeSelector: {
+    width: 280,
+    maxWidth: '100%',
+    alignSelf: 'center',
+    marginBottom: 8,
   },
   centerContent: {
     alignItems: 'center',

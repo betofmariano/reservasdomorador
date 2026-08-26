@@ -26,7 +26,7 @@ import { openExternalLink } from '@/utils/publicidade-links';
 
 const COLORS = {
   background: '#FFFFFF',
-  blue: '#2456A8',
+  blue: '#0F7A6C',
   error: '#D64545',
   muted: '#5C6475',
 };

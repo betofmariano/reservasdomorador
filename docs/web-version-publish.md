@@ -30,13 +30,11 @@ Para evitar aviso de nova versão antes dos arquivos estarem disponíveis:
 
 Site de produção:
 
-`https://www.matchplace.com.br`
-
-O app web **não** usa mais o caminho legado `/apps/matchpoint`.
+`https://reservasdomorador.com.br`
 
 O arquivo de versão deve ficar acessível em:
 
-`https://www.matchplace.com.br/version.json`
+`https://reservasdomorador.com.br/version.json`
 
 ## Regras importantes
 

@@ -26,8 +26,8 @@ type MapaFrequenciaSelecaoModalProps = {
 };
 
 const COLORS = {
-  navy: '#1B2B4B',
-  blue: '#2456A8',
+  navy: '#3A2154',
+  blue: '#0F7A6C',
   white: '#FFFFFF',
   muted: '#5C6475',
   border: '#C5C5C5',

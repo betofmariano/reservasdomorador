@@ -76,8 +76,8 @@ export const API_ENDPOINTS = {
   acessos: '/acessos',
   criarReserva: '/criarReserva',
   criarReservaReact: '/criarReservaReact',
-  /** Endpoint corrigido; o `/criarReservaMensalPorSemana` antigo será removido depois. */
-  criarReservaMensalPorSemana: '/criarReservaMensalPorSemana2',
+  criarReservaMensalPorSemana: '/criarReservaMensalPorSemana',
+  cancelarReservaMensalPorSemana: '/cancelarReservaMensalPorSemana',
   reservasMensalPorSemana: '/reservasmensalporsemana',
   logados: '/logados',
   quadras: '/quadras',
@@ -115,7 +115,7 @@ export function buildHorariosListPath(academiasId?: number, atividadesId?: numbe
   const params = new URLSearchParams();
 
   if (academiasId != null) {
-    params.set('academias_id', String(academiasId));
+    params.set('condominio_id', String(academiasId));
   }
 
   if (atividadesId != null) {
@@ -160,12 +160,9 @@ export function buildPesquisarUsuarioPath(query: {
   return `${API_ENDPOINTS.pesquisarUsuario}?${params.toString()}`;
 }
 
+/** GET /meusLocais/{users_id} */
 export function buildUserLocalAssociationsPath(userId: number): string {
-  const params = new URLSearchParams({
-    users_id: String(userId),
-  });
-
-  return `${API_ENDPOINTS.meusLocais}?${params.toString()}`;
+  return `${API_ENDPOINTS.meusLocais}/${userId}`;
 }
 
 export function buildUsersLocalItemPath(userslocalId: number): string {
@@ -244,8 +241,8 @@ export function buildReservasMensalPorSemanaListPath(academiasId: number): strin
   return `${API_ENDPOINTS.reservasMensalPorSemana}?${params.toString()}`;
 }
 
-export function buildReservasMensalPorSemanaItemPath(reservasMensalPorSemanaId: number): string {
-  return `${API_ENDPOINTS.reservasMensalPorSemana}/${reservasMensalPorSemanaId}`;
+export function buildCancelarReservaMensalPorSemanaPath(reservasId: number): string {
+  return `${API_ENDPOINTS.cancelarReservaMensalPorSemana}/${reservasId}`;
 }
 
 export function buildReservaItemPath(reservasId: number): string {
@@ -373,7 +370,7 @@ export function buildAtividadesListPath(academiasId?: number): string {
   }
 
   const params = new URLSearchParams({
-    academias_id: String(academiasId),
+    condominio_id: String(academiasId),
   });
 
   return `${API_ENDPOINTS.atividades}?${params.toString()}`;
@@ -434,20 +431,24 @@ export function buildMapaDiarioFuturoPath(query?: {
 
 export function buildMapaMensalPorSemanaPath(query?: {
   academias_id?: number;
+  condominio_id?: number;
   atividades_id?: number;
 }): string {
-  if (!query?.academias_id && !query?.atividades_id) {
+  const condominioId = query?.condominio_id ?? query?.academias_id;
+  const atividadesId = query?.atividades_id;
+
+  if (!condominioId && !atividadesId) {
     return API_ENDPOINTS.mapaMensalPorSemana;
   }
 
   const params = new URLSearchParams();
 
-  if (query.academias_id != null) {
-    params.set('academias_id', String(query.academias_id));
+  if (condominioId != null) {
+    params.set('condominio_id', String(condominioId));
   }
 
-  if (query.atividades_id != null) {
-    params.set('atividades_id', String(query.atividades_id));
+  if (atividadesId != null) {
+    params.set('atividades_id', String(atividadesId));
   }
 
   return `${API_ENDPOINTS.mapaMensalPorSemana}?${params.toString()}`;

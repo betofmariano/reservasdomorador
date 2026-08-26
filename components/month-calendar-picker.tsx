@@ -16,7 +16,7 @@ const COLORS = {
   text: '#111111',
   muted: '#8A8F99',
   faint: '#C5C9D1',
-  blue: '#007AFF',
+  blue: '#0F7A6C',
   red: '#E53935',
   white: '#FFFFFF',
 };

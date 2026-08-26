@@ -14,7 +14,11 @@ import {
   registerLogadoForAuthenticatedUser,
   resetLogadoRegistrationSession,
 } from '@/services/logados-service';
-import type { SignupPhotoAsset } from '@/types/signup';
+import {
+  resolveSignupCondominioId,
+  SIGNUP_CONDOMINIO_REQUIRED_MESSAGE,
+  type SignupPhotoAsset,
+} from '@/types/signup';
 import type { User } from '@/types/user';
 import {
   getStoredAuthToken,
@@ -340,6 +344,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { success: false, error: validationError };
     }
 
+    const condominioId = resolveSignupCondominioId(data.academiasId);
+
+    if (condominioId == null) {
+      return { success: false, error: SIGNUP_CONDOMINIO_REQUIRED_MESSAGE };
+    }
+
     const larguraPagina = Math.round(options?.larguraPagina ?? 0);
 
     try {
@@ -349,7 +359,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password: data.password,
         matricula: data.requiresMatricula ? data.matricula.trim() : '',
         complemento: data.requiresComplemento ? data.complemento.trim() : '',
-        academias_id: data.academiasId!,
+        condominio_id: condominioId,
         Foto: '',
         ultimaPublicidadeData: null,
         photoAsset: data.photoAsset!,

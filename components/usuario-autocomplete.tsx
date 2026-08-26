@@ -32,8 +32,8 @@ type UsuarioAutocompleteProps = {
 };
 
 const COLORS = {
-  navy: '#1B2B4B',
-  blue: '#2456A8',
+  navy: '#3A2154',
+  blue: '#0F7A6C',
   error: '#D64545',
   success: '#1F8A4C',
   muted: '#5C6475',

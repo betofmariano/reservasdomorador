@@ -4,7 +4,7 @@ import type { FrequenciaStatus } from '@/types/mapa-frequencia';
 import { getFrequenciaStatusLabel } from '@/utils/mapa-frequencia';
 
 const COLORS = {
-  navy: '#1B2B4B',
+  navy: '#3A2154',
   presente: '#22A06B',
   reservaNaoRealizada: '#FFFFFF',
   ausente: '#111111',

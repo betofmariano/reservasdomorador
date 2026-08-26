@@ -1,3 +1,4 @@
+import { APP_OCULTAR_PATROCINADORES } from '@/constants/app-branding';
 import type { User } from '@/types/user';
 import {
   canAccessAdministracaoAcademia,
@@ -5,6 +6,13 @@ import {
   canShowAdministracaoEntry,
   shouldShowUsuariosInHeaderMenu,
 } from '@/utils/club-config';
+
+const PATROCINADOR_ROUTES = new Set([
+  'patrocinador',
+  'gerenciar-publicidade',
+  'resumo-publicidade',
+  'aprovar-publicidade',
+]);
 
 export const ADMINISTRACAO_SISTEMA_ROUTES = new Set([
   'lista-acessos',
@@ -48,6 +56,10 @@ export const PUBLIC_UNAUTHENTICATED_ROUTES = new Set(['patrocinador']);
 export const SKIP_LOCAL_SELECTION_ROUTES = new Set(['patrocinador', 'gerenciar-publicidade']);
 
 export function isPublicUnauthenticatedRoute(routeName: string): boolean {
+  if (APP_OCULTAR_PATROCINADORES && PATROCINADOR_ROUTES.has(routeName)) {
+    return false;
+  }
+
   return PUBLIC_UNAUTHENTICATED_ROUTES.has(routeName);
 }
 
@@ -77,6 +89,10 @@ export function isAuthRoute(segments: string[]): boolean {
 export function canUserAccessRoute(user: User, routeName: string): boolean {
   if (!routeName || routeName === 'index' || routeName === 'explore') {
     return true;
+  }
+
+  if (APP_OCULTAR_PATROCINADORES && PATROCINADOR_ROUTES.has(routeName)) {
+    return false;
   }
 
   if (PUBLIC_AUTHENTICATED_ROUTES.has(routeName)) {

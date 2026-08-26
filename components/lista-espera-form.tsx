@@ -50,8 +50,8 @@ type ListaEsperaFormProps = {
 type PickerMode = 'date' | 'time' | 'club' | 'activity' | null;
 
 const COLORS = {
-  navy: '#1B2B4B',
-  blue: '#2456A8',
+  navy: '#3A2154',
+  blue: '#0F7A6C',
   white: '#FFFFFF',
   error: '#D64545',
   border: '#D5DAE3',

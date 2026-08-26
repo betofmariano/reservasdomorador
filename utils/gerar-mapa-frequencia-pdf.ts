@@ -8,5 +8,5 @@ export type GerarMapaFrequenciaPdfInput = {
 };
 
 export async function gerarMapaFrequenciaPdf(_input: GerarMapaFrequenciaPdfInput): Promise<void> {
-  throw new Error('A geração de PDF está disponível na versão web do MatchPlace.');
+  throw new Error('A geração de PDF está disponível na versão web do Reservas do Morador.');
 }

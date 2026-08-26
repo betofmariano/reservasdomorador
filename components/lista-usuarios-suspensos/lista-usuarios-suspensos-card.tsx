@@ -11,7 +11,7 @@ type ListaUsuariosSuspensosCardProps = {
 };
 
 const COLORS = {
-  navy: '#1B2B4B',
+  navy: '#3A2154',
   border: '#E2E6EE',
   active: '#1F8A4C',
   ended: '#5C6475',

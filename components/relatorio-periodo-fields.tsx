@@ -19,7 +19,7 @@ type RelatorioPeriodoFieldsProps = {
 };
 
 const COLORS = {
-  navy: '#1B2B4B',
+  navy: '#3A2154',
   border: '#D5DAE3',
   muted: '#5C6475',
 };

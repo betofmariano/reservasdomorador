@@ -20,13 +20,13 @@ export type MapaHorariosGridData = {
 };
 
 export const MAPA_HORARIOS_GRID_COLUMNS: MapaHorariosGridColumn[] = [
-  { key: 'segunda', label: 'Segunda' },
-  { key: 'terca', label: 'Terça' },
-  { key: 'quarta', label: 'Quarta' },
-  { key: 'quinta', label: 'Quinta' },
-  { key: 'sexta', label: 'Sexta' },
-  { key: 'sabado', label: 'Sábado' },
-  { key: 'domingo', label: 'Domingo' },
+  { key: 'segunda', label: 'Seg' },
+  { key: 'terca', label: 'Ter' },
+  { key: 'quarta', label: 'Qua' },
+  { key: 'quinta', label: 'Qui' },
+  { key: 'sexta', label: 'Sex' },
+  { key: 'sabado', label: 'Sáb' },
+  { key: 'domingo', label: 'Dom' },
 ];
 
 function buildHorarioRowKey(hora: number, minutos: number): string {

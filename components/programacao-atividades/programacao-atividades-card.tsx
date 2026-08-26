@@ -14,11 +14,11 @@ type ProgramacaoAtividadesCardProps = {
 };
 
 const COLORS = {
-  navy: '#1B2B4B',
+  navy: '#3A2154',
   border: '#F9B233',
   muted: '#5C6475',
   error: '#D64545',
-  blue: '#2456A8',
+  blue: '#0F7A6C',
 };
 
 function InfoLine({ label, value }: { label: string; value: string }) {

@@ -91,8 +91,8 @@ export function useMeusDadosScreen({ user, authToken }: UseMeusDadosScreenParams
     originalsRef.current = buildOriginalValues(user);
     setNome(user.nome ?? '');
     setTelefone(formatBrazilianMobilePhone(getOriginalPhoneDigits(user)));
-    setComplemento('');
-    setComplementoRegistrado('');
+    setComplemento(user.complemento ?? '');
+    setComplementoRegistrado(user.complemento ?? '');
     setNomeError(null);
     setTelefoneError(null);
     setComplementoError(null);
@@ -155,11 +155,12 @@ export function useMeusDadosScreen({ user, authToken }: UseMeusDadosScreenParams
           return;
         }
 
-        setComplemento(registeredComplemento);
-        setComplementoRegistrado(registeredComplemento);
+        const nextComplemento = registeredComplemento.trim() || user.complemento || '';
+        setComplemento(nextComplemento);
+        setComplementoRegistrado(nextComplemento);
         originalsRef.current = {
           ...originalsRef.current,
-          complemento: registeredComplemento,
+          complemento: nextComplemento,
         };
       })
       .catch(() => {

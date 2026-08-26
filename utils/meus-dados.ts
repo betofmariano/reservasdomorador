@@ -68,7 +68,13 @@ export function validateMeusDadosNome(value: string): string | null {
 }
 
 export function getOriginalPhoneDigits(user: User): string {
-  return stripPhoneDigits(user.telefoneConfirmado || user.telefoneCorrigido || user.telefone || '');
+  return stripPhoneDigits(
+    user.telefoneConfirmado ||
+      user.telefoneLimpo ||
+      user.telefoneCorrigido ||
+      user.telefone ||
+      '',
+  );
 }
 
 export function validateMeusDadosTelefoneDigits(digits: string): string | null {

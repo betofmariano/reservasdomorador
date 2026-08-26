@@ -58,8 +58,8 @@ type UsuarioContatoModalProps = {
 type PhotoStep = 'contact' | 'picker' | 'preview';
 
 const COLORS = {
-  navy: '#1B2B4B',
-  blue: '#2456A8',
+  navy: '#3A2154',
+  blue: '#0F7A6C',
   white: '#FFFFFF',
   border: '#D5DAE3',
   muted: '#5C6475',

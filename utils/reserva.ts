@@ -116,10 +116,19 @@ function normalizeCriarReservaSucesso(value: unknown): number | null {
 export function extractCriarReservaSucesso(data: unknown): number | null {
   const record = unwrapReservaResponseRecord(data);
 
-  return (
+  const fromField =
     normalizeCriarReservaSucesso(record.sucesso ?? record.Sucesso) ??
-    normalizeCriarReservaSucesso(record.resultadoOperacao)
-  );
+    normalizeCriarReservaSucesso(record.resultadoOperacao);
+
+  if (fromField != null) {
+    return fromField;
+  }
+
+  if (extractReservaIdFromCriarReservaResponse(record as CriarReservaResponse)) {
+    return CRIAR_RESERVA_RESULTADO.sucesso;
+  }
+
+  return null;
 }
 
 export function isReservaResponseSuccess(data: unknown): boolean {
@@ -132,6 +141,22 @@ function extractReservaApiMessage(record: Record<string, unknown>): string | nul
 
     if (typeof value === 'string' && value.trim()) {
       return value.trim();
+    }
+  }
+
+  const sucesso = record.sucesso ?? record.Sucesso;
+
+  if (typeof sucesso === 'string') {
+    const trimmed = sucesso.trim();
+
+    if (
+      trimmed &&
+      Number.isNaN(Number(trimmed)) &&
+      trimmed.toLowerCase() !== 'true' &&
+      trimmed.toLowerCase() !== 'false' &&
+      trimmed.toLowerCase() !== 'sucesso'
+    ) {
+      return trimmed;
     }
   }
 

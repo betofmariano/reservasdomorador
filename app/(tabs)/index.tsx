@@ -46,6 +46,7 @@ import { useListaReservasAccess } from '@/hooks/use-lista-reservas-access';
 import { useListaPresencaAccess } from '@/hooks/use-lista-presenca-access';
 import { useListaEsperaAccess } from '@/hooks/use-lista-espera-access';
 import { registrarImpressaoBanner } from '@/services/publicidade-service';
+import { APP_OCULTAR_PATROCINADORES } from '@/constants/app-branding';
 import { HOME_MAX_BUTTON_WIDTH } from '@/constants/web-layout';
 import { getGreeting } from '@/utils/get-greeting';
 import { getAdministracaoEntryButtonLabel, shouldShowUsuariosInHeaderMenu } from '@/utils/club-config';
@@ -59,9 +60,9 @@ import { getPatrocinadorBannerImageUrl, getPatrocinadorLogoImageUrl } from '@/ut
 
 const COLORS = {
   background: '#FFFFFF',
-  navy: '#1B2B4B',
+  navy: '#3A2154',
   gold: '#E8B830',
-  blue: '#2456A8',
+  blue: '#0F7A6C',
   black: '#000000',
   white: '#FFFFFF',
   muted: '#5C6475',
@@ -559,25 +560,27 @@ export default function HomeScreen() {
             onPress={() => setIsMeusLocaisVisible(true)}
           />
 
-          <MenuActionButton
-            label="Patrocinadores"
-            backgroundColor={COLORS.blue}
-            textColor={COLORS.white}
-            width={buttonWidth}
-            fontSize={menuButtonMetrics.fontSize}
-            buttonHeight={menuButtonMetrics.buttonHeight}
-            iconContainerWidth={menuButtonMetrics.iconContainerWidth}
-            paddingHorizontal={menuButtonMetrics.paddingHorizontal}
-            icon={
-              <Ionicons
-                name="megaphone-outline"
-                size={menuButtonMetrics.iconSize}
-                color={COLORS.white}
-              />
-            }
-            style={{ marginTop: BUTTON_GAP }}
-            onPress={() => router.push('/patrocinador')}
-          />
+          {APP_OCULTAR_PATROCINADORES ? null : (
+            <MenuActionButton
+              label="Patrocinadores"
+              backgroundColor={COLORS.blue}
+              textColor={COLORS.white}
+              width={buttonWidth}
+              fontSize={menuButtonMetrics.fontSize}
+              buttonHeight={menuButtonMetrics.buttonHeight}
+              iconContainerWidth={menuButtonMetrics.iconContainerWidth}
+              paddingHorizontal={menuButtonMetrics.paddingHorizontal}
+              icon={
+                <Ionicons
+                  name="megaphone-outline"
+                  size={menuButtonMetrics.iconSize}
+                  color={COLORS.white}
+                />
+              }
+              style={{ marginTop: BUTTON_GAP }}
+              onPress={() => router.push('/patrocinador')}
+            />
+          )}
 
           <Pressable
             style={styles.sairLink}

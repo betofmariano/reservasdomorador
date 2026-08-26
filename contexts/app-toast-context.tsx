@@ -43,7 +43,7 @@ const DEFAULT_DURATION_MS = 3_500;
 const TOAST_COLORS: Record<ToastVariant, string> = {
   success: '#2E9E5A',
   error: '#D64545',
-  info: '#2456A8',
+  info: '#0F7A6C',
 };
 
 function AppToastOverlay({

@@ -5,7 +5,7 @@
 
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
+const tintColorLight = '#0F7A6C';
 const tintColorDark = '#fff';
 
 export const Colors = {
@@ -53,10 +53,10 @@ export const Fonts = Platform.select({
 });
 
 export const MATCHPOINT_COLORS = {
-  navy: '#1B2B4B',
-  blue: '#2456A8',
+  navy: '#3A2154',
+  blue: '#0F7A6C',
   gold: '#E8B830',
-  accent: '#E89520',
+  accent: '#2B6BCF',
   white: '#FFFFFF',
   background: '#FFFFFF',
   error: '#D64545',

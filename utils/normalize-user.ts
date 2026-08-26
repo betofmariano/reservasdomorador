@@ -11,7 +11,14 @@ import {
 import { resolvePersonPhotoFromApiPayload } from '@/utils/user-photo';
 import { resolveEffectiveLocalRoles } from '@/utils/user-local-roles';
 
-const NESTED_USER_KEYS = ['users', '_users', 'usersxano', '_usersxano'] as const;
+const NESTED_USER_KEYS = [
+  'user',
+  'users',
+  '_users',
+  'usersxano',
+  '_usersxano',
+  'userEncontrado',
+] as const;
 
 function isPlainRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
@@ -34,8 +41,15 @@ function omitPassword(
  * `User.id` vem só de `user.id`. `vinculo.id` vai para `userslocalId`.
  */
 function mergeAuthMeUserAndVinculo(raw: Record<string, unknown>): Record<string, unknown> {
-  const userRecord = isPlainRecord(raw.user) ? raw.user : null;
-  const vinculo = isPlainRecord(raw.vinculo) ? raw.vinculo : null;
+  const vinculo = isPlainRecord(raw.vinculo)
+    ? raw.vinculo
+    : isPlainRecord(raw.userEncontrado)
+      ? raw.userEncontrado
+      : null;
+  const nestedFromVinculo = vinculo
+    ? NESTED_USER_KEYS.map((key) => vinculo[key]).find(isPlainRecord) ?? null
+    : null;
+  const userRecord = isPlainRecord(raw.user) ? raw.user : nestedFromVinculo;
 
   if (!userRecord && !vinculo) {
     return raw;
@@ -57,7 +71,7 @@ function mergeAuthMeUserAndVinculo(raw: Record<string, unknown>): Record<string,
     ...raw,
     ...vinculoWithoutId,
     ...userWithoutPassword,
-    id: userId ?? userWithoutPassword.id,
+    id: userId ?? vinculoWithoutId.users_id ?? userWithoutPassword.id,
     users_id: userId ?? vinculoWithoutId.users_id,
     academias_id: condominioId ?? userWithoutPassword.academias_id,
     condominio_id: condominioId,
@@ -93,10 +107,14 @@ function mergeUsersLocalFields(record: Record<string, unknown>): Record<string, 
   return {
     ...record,
     users_id: record.users_id ?? localRecord.users_id ?? localRecord.users_id,
+    telefone:
+      readString(record, ['telefone', 'telefoneConfirmado']) ||
+      readString(localRecord, ['telefone', 'telefoneConfirmado']),
     telefoneLimpo:
       readString(record, ['telefoneLimpo']) ||
-      readString(localRecord, ['telefoneLimpo', 'telefoneConfirmado']),
-    academias_id: record.academias_id ?? localRecord.academias_id,
+      readString(localRecord, ['telefoneLimpo', 'telefoneConfirmado', 'telefone']),
+    academias_id: record.academias_id ?? localRecord.academias_id ?? localRecord.condominio_id,
+    complemento: record.complemento ?? localRecord.complemento,
     administrador: record.administrador ?? localRecord.administrador,
     gestor: record.gestor ?? effectiveRoles.gestor,
     professor: record.professor ?? effectiveRoles.professor,
@@ -125,7 +143,9 @@ function mergeNestedUserFields(record: Record<string, unknown>): Record<string, 
       id: merged.id ?? nestedRecord.id,
       nome: merged.nome ?? nestedRecord.nome ?? nestedRecord.nome_usuario,
       email: merged.email ?? nestedRecord.email,
-      academias_id: merged.academias_id ?? nestedRecord.academias_id,
+      telefone: merged.telefone ?? nestedRecord.telefone ?? nestedRecord.telefoneLimpo,
+      telefoneLimpo: merged.telefoneLimpo ?? nestedRecord.telefoneLimpo ?? nestedRecord.telefone,
+      academias_id: merged.academias_id ?? nestedRecord.academias_id ?? nestedRecord.condominio_id,
       administrador: merged.administrador ?? nestedRecord.administrador,
       gestor: merged.gestor ?? nestedRecord.gestor,
       professor: merged.professor ?? nestedRecord.professor,
@@ -156,7 +176,11 @@ function readUserTelefoneLimpo(record: Record<string, unknown>): string {
     }
 
     const nestedRecord = nested as Record<string, unknown>;
-    const fromNested = readString(nestedRecord, ['telefoneLimpo', 'telefoneConfirmado']);
+    const fromNested = readString(nestedRecord, [
+      'telefoneLimpo',
+      'telefoneConfirmado',
+      'telefone',
+    ]);
 
     if (fromNested) {
       return normalizePhoneForApi(fromNested);
@@ -173,19 +197,32 @@ export function normalizeUserFromApi(raw: unknown): User {
     raw && typeof raw === 'object' && !Array.isArray(raw)
       ? (raw as Record<string, unknown>)
       : {};
-  const hasAuthMeShape = isPlainRecord(incoming.user) || isPlainRecord(incoming.vinculo);
+  const hasAuthMeShape =
+    isPlainRecord(incoming.user) ||
+    isPlainRecord(incoming.vinculo) ||
+    isPlainRecord(incoming.userEncontrado);
   const baseRecord = hasAuthMeShape ? mergeAuthMeUserAndVinculo(incoming) : incoming;
   const record = mergeNestedUserFields(baseRecord);
 
-  const telefone = readString(record, ['telefone', 'telefoneConfirmado']);
+  const telefone = readString(record, ['telefone', 'telefoneConfirmado', 'telefoneLimpo']);
   const telefoneLimpo = readUserTelefoneLimpo(record);
   const nestedUsers =
     record._users && typeof record._users === 'object'
       ? (record._users as Record<string, unknown>)
-      : null;
-  const photoSource = isPlainRecord(incoming.user) ? incoming.user : baseRecord;
+      : isPlainRecord(record.user)
+        ? record.user
+        : null;
+  const photoSource = isPlainRecord(incoming.user)
+    ? incoming.user
+    : isPlainRecord(incoming.userEncontrado)
+      ? incoming.userEncontrado
+      : baseRecord;
   const userId = hasAuthMeShape
-    ? normalizeRecordId(isPlainRecord(incoming.user) ? incoming.user.id : record.id)
+    ? normalizeRecordId(
+        isPlainRecord(incoming.user)
+          ? incoming.user.id
+          : record.id ?? record.users_id,
+      )
     : (readUserId(record) ?? normalizeRecordId(record.id));
 
   return {

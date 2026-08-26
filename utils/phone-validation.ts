@@ -1,5 +1,9 @@
 import { ASSOCIACAO_LOCAL_LABELS } from '@/constants/associacao-local-labels';
 import { isValidNumericPassword } from '@/constants/auth';
+import {
+  resolveSignupCondominioId,
+  SIGNUP_CONDOMINIO_REQUIRED_MESSAGE,
+} from '@/types/signup';
 import { appAlert, appConfirm } from '@/utils/app-dialog-bridge';
 import { validatePersonName } from '@/utils/meus-dados';
 import { BRAZILIAN_MOBILE_PHONE_DIGITS, stripPhoneDigits } from '@/utils/phone-mask';
@@ -91,7 +95,7 @@ export const SIGNUP_VALIDATION_MESSAGES = {
   telefoneRequired: 'Informe seu telefone/WhatsApp.',
   passwordInvalid: 'A senha deve ter de 4 a 6 dígitos numéricos.',
   passwordMismatch: 'As senhas não coincidem.',
-  associacaoLocalRequired: ASSOCIACAO_LOCAL_LABELS.obrigatorio,
+  associacaoLocalRequired: SIGNUP_CONDOMINIO_REQUIRED_MESSAGE,
   matriculaRequired: 'Informe o número da matrícula.',
   matriculaRequiredTitle: 'Matrícula obrigatória',
   matriculaRequiredMessage: ASSOCIACAO_LOCAL_LABELS.matriculaExigida,
@@ -145,7 +149,7 @@ export function getSignupValidationError(params: SignupValidationParams): string
     return SIGNUP_VALIDATION_MESSAGES.passwordMismatch;
   }
 
-  if (!params.academiasId) {
+  if (resolveSignupCondominioId(params.academiasId) == null) {
     return SIGNUP_VALIDATION_MESSAGES.associacaoLocalRequired;
   }
 
