@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 type PasswordTextFieldProps = Omit<TextInputProps, 'secureTextEntry'> & {
@@ -102,6 +102,12 @@ const styles = StyleSheet.create({
     fontSize: 19,
     color: COLORS.navy,
     backgroundColor: '#FFFFFF',
+    ...Platform.select({
+      web: {
+        userSelect: 'text',
+        cursor: 'text',
+      },
+    }),
   },
   toggleButton: {
     position: 'absolute',

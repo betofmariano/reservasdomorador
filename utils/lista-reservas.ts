@@ -169,6 +169,7 @@ export function mapReservasMensalPorSemanaToListaItems(
       cancelado: reserva.cancelado,
       limiteCancelamento: reserva.limiteCancelamento,
       usaMensalPorSemana: true,
+      mapadiariodamha_id: reserva.mapadiariodamha_id,
     };
   });
 }

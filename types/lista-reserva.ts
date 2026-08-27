@@ -13,4 +13,5 @@ export type ListaReservaItem = {
   cancelado: boolean;
   limiteCancelamento: number | null;
   usaMensalPorSemana: boolean;
+  mapadiariodamha_id: number;
 };

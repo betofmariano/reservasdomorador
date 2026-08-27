@@ -79,22 +79,12 @@ function RootLayoutNav() {
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="lista-reservas" />
-        <Stack.Screen name="lista-reservas-atividade" />
-        <Stack.Screen name="lista-reservas-periodo" />
-        <Stack.Screen name="programacao-atividades" />
-        <Stack.Screen name="mapa-frequencia" />
-        <Stack.Screen name="relatorio-lista-espera" />
-        <Stack.Screen name="lista-presenca" />
-        <Stack.Screen name="lista-espera" />
-        <Stack.Screen name="lista-espera-horarios" />
         <Stack.Screen name="minhas-reservas" />
         <Stack.Screen name="reservar-horario" />
         <Stack.Screen name="usuarios" />
         <Stack.Screen name="lista-acessos" />
         <Stack.Screen name="lista-logins" />
         <Stack.Screen name="lista-logados" />
-        <Stack.Screen name="resumo-publicidade" />
-        <Stack.Screen name="aprovar-publicidade" />
         <Stack.Screen name="lista-usuarios-gestor" />
         <Stack.Screen name="configuracao-local" />
         <Stack.Screen name="cadastro-atividades" />
@@ -102,8 +92,6 @@ function RootLayoutNav() {
         <Stack.Screen name="mapa-horarios" />
         <Stack.Screen name="administracao" />
         <Stack.Screen name="meus-dados" />
-        <Stack.Screen name="patrocinador" />
-        <Stack.Screen name="gerenciar-publicidade" />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
       </Stack>
       <AppVersionChecker enabled={!isLoading} />

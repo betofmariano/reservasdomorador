@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 
 import { CancelarListaEsperaModal } from '@/components/cancelar-lista-espera-modal';
 import { CancelarReservaModal } from '@/components/cancelar-reserva-modal';
@@ -17,7 +16,6 @@ type HomeCompromissosSectionProps = {
   proximaReserva: ReservaSummary | null;
   proximaListaEspera: ListaEsperaSummary | null;
   totalReservas: number;
-  totalListasEspera: number;
   isLoading: boolean;
   reservasError: string | null;
   listaEsperaError: string | null;
@@ -117,7 +115,6 @@ export function HomeCompromissosSection({
   proximaReserva,
   proximaListaEspera,
   totalReservas,
-  totalListasEspera,
   isLoading,
   reservasError,
   listaEsperaError,
@@ -131,7 +128,6 @@ export function HomeCompromissosSection({
   onReservaRemoved,
   onCriticalModalVisibilityChange,
 }: HomeCompromissosSectionProps) {
-  const router = useRouter();
   const [reservaParaCancelar, setReservaParaCancelar] = useState<ReservaSummary | null>(null);
   const [listaParaCancelar, setListaParaCancelar] = useState<ListaEsperaSummary | null>(null);
 
@@ -209,13 +205,6 @@ export function HomeCompromissosSection({
                 registro={proximaListaEspera}
                 onCancelPress={() => setListaParaCancelar(proximaListaEspera)}
               />
-              {totalListasEspera > 1 ? (
-                <Pressable
-                  style={styles.seeAllButton}
-                  onPress={() => router.push('/lista-espera')}>
-                  <Text style={styles.seeAllText}>Ver todas</Text>
-                </Pressable>
-              ) : null}
             </View>
           ) : null}
         </>
@@ -318,18 +307,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginTop: 12,
     padding: 6,
-  },
-  seeAllButton: {
-    alignSelf: 'flex-end',
-    marginTop: 6,
-    paddingVertical: 4,
-    paddingHorizontal: 4,
-  },
-  seeAllText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.blue,
-    textDecorationLine: 'underline',
   },
   errorBlock: {
     alignItems: 'center',

@@ -26,13 +26,7 @@ const PERMISSAO_GESTOR_API_ALIASES: Partial<Record<PermissaoGestorModulo, string
 };
 
 const GESTOR_ROUTE_MODULOS: Partial<Record<string, PermissaoGestorModulo>> = {
-  '/lista-presenca': 'listaPresenca',
   '/lista-reservas': 'listaReservas',
-  '/lista-reservas-atividade': 'listaReservasAtividade',
-  '/lista-reservas-periodo': 'resumoPeriodo',
-  '/programacao-atividades': 'programacaoAtividades',
-  '/relatorio-lista-espera': 'relatorioListaEspera',
-  '/mapa-frequencia': 'mapaFrequencia',
 };
 
 export function normalizePermissoesGestorFromApi(raw: unknown): PermissoesGestor {

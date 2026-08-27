@@ -1,5 +1,3 @@
-import type { PhotoAsset } from '@/types/user-photo';
-
 export type PublicidadeImage = {
   url: string;
 };
@@ -49,21 +47,6 @@ export type Patrocinador = {
   bannerTrocar?: PublicidadeImage | null;
   popupTelaTrocar?: PublicidadeImage | null;
   wzQuadroTrocar?: PublicidadeImage | null;
-};
-
-export type PatrocinadorAssetSlot = 'logo' | 'banner' | 'popup' | 'whatsapp';
-
-export type PatrocinadorAlterarDadosPayload = {
-  patrocinadoresId: number;
-  telefoneNovo?: string;
-  sloganNovo?: string;
-  instagramNovo?: string;
-  direcionamentoNovo?: string;
-  webSiteNovo?: string;
-  logoTrocar?: PhotoAsset;
-  bannerTrocar?: PhotoAsset;
-  popupTelaTrocar?: PhotoAsset;
-  wzQuadroTrocar?: PhotoAsset;
 };
 
 export type PatrocinadoresResponse = Patrocinador[];

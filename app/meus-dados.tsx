@@ -155,13 +155,13 @@ export default function MeusDadosScreen() {
           visible={isPhotoModalVisible}
           onClose={() => setIsPhotoModalVisible(false)}
         />
-
-        <AlterarSenhaModal
-          visible={isPasswordModalVisible}
-          onClose={() => setIsPasswordModalVisible(false)}
-          onSuccess={(message) => showToast(message, { variant: 'success' })}
-        />
       </WebScreenContainer>
+
+      <AlterarSenhaModal
+        visible={isPasswordModalVisible}
+        onClose={() => setIsPasswordModalVisible(false)}
+        onSuccess={(message) => showToast(message, { variant: 'success' })}
+      />
     </SafeAreaView>
   );
 }

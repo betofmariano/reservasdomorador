@@ -48,6 +48,11 @@ export default function Root({ children }: PropsWithChildren) {
         />
 
         <meta
+          name="application-name"
+          content="Reservas do Morador"
+        />
+
+        <meta
           name="apple-mobile-web-app-title"
           content="Reservas do Morador"
         />

@@ -4,7 +4,6 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { MenuActionButton } from '@/components/menu-action-button';
-import { APP_OCULTAR_PATROCINADORES } from '@/constants/app-branding';
 import { MATCHPOINT_COLORS } from '@/constants/theme';
 import { useUserContext } from '@/contexts/user-context';
 import type { AdministracaoMenuAccess } from '@/hooks/use-administracao-menu-access';
@@ -31,13 +30,7 @@ const ADMIN_ONLY_ITEMS: AdminMenuItem[] = [
   { label: 'Lista de Acessos', route: '/lista-acessos', icon: 'enter-outline' },
   { label: 'Lista de Logins', route: '/lista-logins', icon: 'key-outline' },
   { label: 'Lista de Logados', route: '/lista-logados', icon: 'people-circle-outline' },
-  { label: 'Publicidade', route: '/resumo-publicidade', icon: 'megaphone-outline' },
-  { label: 'Aprovar Publicidade', route: '/aprovar-publicidade', icon: 'checkmark-circle-outline' },
-].filter(
-  (item) =>
-    !APP_OCULTAR_PATROCINADORES ||
-    (item.route !== '/resumo-publicidade' && item.route !== '/aprovar-publicidade'),
-);
+];
 
 const CLUB_ADMIN_ITEMS: AdminMenuItem[] = [
   { label: 'Lista de Usuários', route: '/lista-usuarios-gestor', icon: 'people-outline' },

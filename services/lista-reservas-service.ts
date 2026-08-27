@@ -1,5 +1,5 @@
 import {
-  excluirReservaMensalPorSemana,
+  cancelarReservaMensalPorSemana,
   getReservasMensalPorSemanaByAcademia,
 } from '@/services/reservas-mensal-por-semana-service';
 import {
@@ -97,5 +97,16 @@ export async function excluirReservaLista(
   _gestorUserId: number,
   authToken: string,
 ): Promise<unknown> {
-  return excluirReservaMensalPorSemana(item.id, authToken);
+  return cancelarReservaMensalPorSemana(
+    {
+      reservasMensalPorSemanaId: item.id,
+      users_id: item.users_id,
+      atividades_id: item.atividades_id,
+      mapadiariodamha_id: item.mapadiariodamha_id,
+      dataAtividade: item.dataAtividade,
+      atividadeunidade_id: item.atividadeunidade_id,
+      academias_id: item.academias_id,
+    },
+    authToken,
+  );
 }

@@ -7,7 +7,6 @@ import { OkMessageModal } from '@/components/ok-message-modal';
 import { PasswordTextField } from '@/components/password-text-field';
 import { PhoneTextField } from '@/components/phone-text-field';
 import { PendingRecoveryModal } from '@/components/pending-recovery-modal';
-import { RecuperarMeusDadosModal } from '@/components/recuperar-meus-dados-modal';
 import { RecuperarSenhaModal } from '@/components/recuperar-senha-modal';
 import { WrongPasswordModal } from '@/components/wrong-password-modal';
 import { stripNonNumeric } from '@/constants/auth';
@@ -68,7 +67,6 @@ export function LoginForm({ onSubmittingChange }: LoginFormProps) {
   const [recoveryResume, setRecoveryResume] = useState<PendingRecoveryState | null>(null);
   const [pendingRecovery, setPendingRecovery] = useState<PendingRecoveryState | null>(null);
   const [isPendingRecoveryPromptVisible, setIsPendingRecoveryPromptVisible] = useState(false);
-  const [isAccountRecoveryVisible, setIsAccountRecoveryVisible] = useState(false);
   const [errorModal, setErrorModal] = useState<ErrorModalState | null>(null);
   const loginInFlightRef = useRef(false);
 
@@ -227,18 +225,6 @@ export function LoginForm({ onSubmittingChange }: LoginFormProps) {
     navigateToHome(router);
   }
 
-  function handleRecoverAccountData() {
-    if (isSubmitting) {
-      return;
-    }
-
-    setIsAccountRecoveryVisible(true);
-  }
-
-  function handleAccountRecoveryClose() {
-    setIsAccountRecoveryVisible(false);
-  }
-
   const isWrongPasswordModal = errorModal?.kind === 'wrong_password';
 
   return (
@@ -275,14 +261,6 @@ export function LoginForm({ onSubmittingChange }: LoginFormProps) {
         onPress={handleLogin}
         disabled={isSubmitting}
         style={styles.submitButton}
-      />
-
-      <AuthButton
-        label="Pesquisar Meus Dados"
-        variant="actionLink"
-        onPress={handleRecoverAccountData}
-        disabled={isSubmitting}
-        style={styles.lastRecoveryAction}
       />
 
       {isSubmitting ? (
@@ -324,11 +302,6 @@ export function LoginForm({ onSubmittingChange }: LoginFormProps) {
           void refreshPendingRecovery();
         }}
       />
-
-      <RecuperarMeusDadosModal
-        visible={isAccountRecoveryVisible}
-        onClose={handleAccountRecoveryClose}
-      />
     </View>
   );
 }
@@ -344,9 +317,6 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     marginBottom: 16,
-  },
-  lastRecoveryAction: {
-    marginBottom: 8,
   },
   loadingRow: {
     flexDirection: 'row',

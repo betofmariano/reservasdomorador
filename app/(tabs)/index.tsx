@@ -43,10 +43,8 @@ import { useHomeSummary } from '@/hooks/use-home-summary';
 import { useUserAcademiaSemPublicidade } from '@/hooks/use-user-academia-sem-publicidade';
 import { useAdministracaoMenuAccess } from '@/hooks/use-administracao-menu-access';
 import { useListaReservasAccess } from '@/hooks/use-lista-reservas-access';
-import { useListaPresencaAccess } from '@/hooks/use-lista-presenca-access';
 import { useListaEsperaAccess } from '@/hooks/use-lista-espera-access';
 import { registrarImpressaoBanner } from '@/services/publicidade-service';
-import { APP_OCULTAR_PATROCINADORES } from '@/constants/app-branding';
 import { HOME_MAX_BUTTON_WIDTH } from '@/constants/web-layout';
 import { getGreeting } from '@/utils/get-greeting';
 import { getAdministracaoEntryButtonLabel, shouldShowUsuariosInHeaderMenu } from '@/utils/club-config';
@@ -70,8 +68,6 @@ const COLORS = {
 
 const BUTTON_GAP = 18;
 
-type AtividadeModalMode = 'reserva' | 'lista-espera';
-
 export default function HomeScreen() {
   const router = useRouter();
   const { reservaSucesso } = useLocalSearchParams<{ reservaSucesso?: string }>();
@@ -93,7 +89,7 @@ export default function HomeScreen() {
   const [isGuiaSelecaoVisible, setIsGuiaSelecaoVisible] = useState(false);
   const [isLogoutModalVisible, setIsLogoutModalVisible] = useState(false);
   const [guiaInstalacaoAtivo, setGuiaInstalacaoAtivo] = useState<GuiaInstalacao | null>(null);
-  const [atividadeModalMode, setAtividadeModalMode] = useState<AtividadeModalMode | null>(null);
+  const [isAtividadeModalVisible, setIsAtividadeModalVisible] = useState(false);
   const [hasCompromissoCriticalModal, setHasCompromissoCriticalModal] = useState(false);
   const [footerPatrocinador, setFooterPatrocinador] = useState<Patrocinador | null>(null);
   const [footerBannerVisible, setFooterBannerVisible] = useState(false);
@@ -104,7 +100,6 @@ export default function HomeScreen() {
     proximaReserva,
     proximaListaEspera,
     reservas,
-    listasEspera,
     isLoading: isSummaryLoading,
     isRefreshing,
     reservasError,
@@ -121,8 +116,7 @@ export default function HomeScreen() {
     useAdministracaoMenuAccess(user);
 
   const { canAccessListaReservas } = useListaReservasAccess();
-  const { canAccessListaPresencaNaHome } = useListaPresencaAccess();
-  const { canAccessListaEspera, canAccessListaEsperaNaHome } = useListaEsperaAccess();
+  const { canAccessListaEspera } = useListaEsperaAccess();
 
   const isProfessorHomeUser =
     !permissions.administrador &&
@@ -139,9 +133,6 @@ export default function HomeScreen() {
     (isGestorHome && effectiveAcademiasId != null);
   const showMeusDadosButton = showUsuarioComumHomeButtons || isAdministradorHome || isGestorHome;
   const showReservarHorarioButton = !isProfessorHomeUser && !isAdministradorHome;
-  const showListaEsperaButton = canAccessListaEsperaNaHome && !isProfessorHomeUser;
-  const showListaPresencaFirst =
-    isProfessorHomeUser && canAccessListaPresencaNaHome && effectiveAcademiasId != null;
   const showListaUsuariosProfessorButton =
     isProfessorHomeUser &&
     user != null &&
@@ -176,7 +167,7 @@ export default function HomeScreen() {
       guiaInstalacaoAtivo != null ||
       hasCompromissoCriticalModal ||
       footerBannerVisible ||
-      atividadeModalMode !== null,
+      isAtividadeModalVisible,
     onUltimaPublicidadeDataUpdated: (timestamp) => {
       patchUser({ ultimaPublicidadeData: timestamp });
     },
@@ -265,34 +256,6 @@ export default function HomeScreen() {
 
   const greeting = `${getGreeting()}, ${user.nome}!`;
 
-  function renderListaPresencaButton(withTopMargin: boolean) {
-    if (!canAccessListaPresencaNaHome) {
-      return null;
-    }
-
-    return (
-      <MenuActionButton
-        label="Lista de Presença"
-        backgroundColor={COLORS.blue}
-        textColor={COLORS.white}
-        width={buttonWidth}
-        fontSize={menuButtonMetrics.fontSize}
-        buttonHeight={menuButtonMetrics.buttonHeight}
-        iconContainerWidth={menuButtonMetrics.iconContainerWidth}
-        paddingHorizontal={menuButtonMetrics.paddingHorizontal}
-        icon={
-          <Ionicons
-            name="checkbox-outline"
-            size={menuButtonMetrics.iconSize}
-            color={COLORS.white}
-          />
-        }
-        style={withTopMargin ? { marginTop: BUTTON_GAP } : undefined}
-        onPress={() => router.push('/lista-presenca' as never)}
-      />
-    );
-  }
-
   function renderListaUsuariosProfessorButton(withTopMargin: boolean) {
     if (!showListaUsuariosProfessorButton) {
       return null;
@@ -358,7 +321,6 @@ export default function HomeScreen() {
           proximaReserva={proximaReserva}
           proximaListaEspera={proximaListaEspera}
           totalReservas={reservas.length}
-          totalListasEspera={listasEspera.length}
           isLoading={isSummaryLoading}
           reservasError={reservasError}
           listaEsperaError={listaEsperaError}
@@ -374,9 +336,8 @@ export default function HomeScreen() {
         />
 
         <View style={styles.buttonsContainer}>
-          {showListaPresencaFirst ? renderListaPresencaButton(false) : null}
           {showListaUsuariosProfessorButton
-            ? renderListaUsuariosProfessorButton(showListaPresencaFirst)
+            ? renderListaUsuariosProfessorButton(false)
             : null}
 
           {showAdministracaoNaHome ? (
@@ -420,39 +381,13 @@ export default function HomeScreen() {
               />
             }
             style={
-              showListaPresencaFirst ||
-              showListaUsuariosProfessorButton ||
-              showAdministracaoNaHome
+              showListaUsuariosProfessorButton || showAdministracaoNaHome
                 ? { marginTop: BUTTON_GAP }
                 : undefined
             }
-            onPress={() => setAtividadeModalMode('reserva')}
+            onPress={() => setIsAtividadeModalVisible(true)}
           />
           ) : null}
-
-          {showListaEsperaButton ? (
-            <MenuActionButton
-              label="Entrar em Lista de Espera"
-              backgroundColor={COLORS.blue}
-              textColor={COLORS.white}
-              width={buttonWidth}
-              fontSize={menuButtonMetrics.fontSize}
-              buttonHeight={menuButtonMetrics.buttonHeight}
-              iconContainerWidth={menuButtonMetrics.iconContainerWidth}
-              paddingHorizontal={menuButtonMetrics.paddingHorizontal}
-              icon={
-                <Ionicons
-                  name="hourglass-outline"
-                  size={menuButtonMetrics.iconSize}
-                  color={COLORS.white}
-                />
-              }
-              style={{ marginTop: BUTTON_GAP }}
-              onPress={() => setAtividadeModalMode('lista-espera')}
-            />
-          ) : null}
-
-          {!showListaPresencaFirst ? renderListaPresencaButton(true) : null}
 
           {canAccessListaReservas ? (
             <MenuActionButton
@@ -560,28 +495,6 @@ export default function HomeScreen() {
             onPress={() => setIsMeusLocaisVisible(true)}
           />
 
-          {APP_OCULTAR_PATROCINADORES ? null : (
-            <MenuActionButton
-              label="Patrocinadores"
-              backgroundColor={COLORS.blue}
-              textColor={COLORS.white}
-              width={buttonWidth}
-              fontSize={menuButtonMetrics.fontSize}
-              buttonHeight={menuButtonMetrics.buttonHeight}
-              iconContainerWidth={menuButtonMetrics.iconContainerWidth}
-              paddingHorizontal={menuButtonMetrics.paddingHorizontal}
-              icon={
-                <Ionicons
-                  name="megaphone-outline"
-                  size={menuButtonMetrics.iconSize}
-                  color={COLORS.white}
-                />
-              }
-              style={{ marginTop: BUTTON_GAP }}
-              onPress={() => router.push('/patrocinador')}
-            />
-          )}
-
           <Pressable
             style={styles.sairLink}
             onPress={() => setIsLogoutModalVisible(true)}
@@ -602,15 +515,12 @@ export default function HomeScreen() {
         </View>
 
       <SelecionarAtividadeReservaModal
-        visible={atividadeModalMode !== null}
+        visible={isAtividadeModalVisible}
         userId={user.id}
-        onClose={() => setAtividadeModalMode(null)}
+        onClose={() => setIsAtividadeModalVisible(false)}
         onSelect={(atividade) => {
-          const pathname =
-            atividadeModalMode === 'lista-espera' ? '/lista-espera-horarios' : '/reservar-horario';
-
           router.push({
-            pathname,
+            pathname: '/reservar-horario',
             params: {
               atividadesId: String(atividade.id),
               atividadeNome: atividade.nome,
@@ -620,7 +530,7 @@ export default function HomeScreen() {
           });
         }}
         onAddLocal={() => {
-          setAtividadeModalMode(null);
+          setIsAtividadeModalVisible(false);
           setIsMeusLocaisVisible(true);
         }}
       />

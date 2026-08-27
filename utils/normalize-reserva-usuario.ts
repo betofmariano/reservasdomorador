@@ -500,6 +500,10 @@ export function normalizeReservaUsuarioFromApi(raw: unknown): ReservaUsuario | n
       readTimestamp(merged, ['createdAt', 'created_at']) ??
       0,
     cancelamentoAutomatico: readTimestamp(merged, ['cancelamentoAutomatico']),
+    numeroCancelamento: Math.max(
+      0,
+      readNumber(record, ['numeroCancelamento', 'numero_cancelamento'], readNumber(merged, ['numeroCancelamento', 'numero_cancelamento'])),
+    ),
     responsavel,
     adversario: normalizeJogador(jogoRecord?.adversario ?? merged.adversario),
     parceiro1: normalizeJogador(jogoRecord?.parceiro1 ?? merged.parceiro1),

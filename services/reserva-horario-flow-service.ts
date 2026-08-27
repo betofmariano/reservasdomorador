@@ -1,7 +1,7 @@
 import { getAcademias } from '@/services/academias-service';
 import {
+  cancelarReservaMensalPorSemana,
   criarReservaMensalPorSemana,
-  excluirReservaMensalPorSemana,
   getReservasUsuarioMensalPorSemana,
 } from '@/services/reservas-mensal-por-semana-service';
 import { getMapaMensalPorSemana } from '@/services/mapa-mensal-por-semana-service';
@@ -190,5 +190,17 @@ export async function cancelarReservaForUser(
     throw new Error('Não foi possível identificar a reserva para cancelar.');
   }
 
-  return excluirReservaMensalPorSemana(reservasMensalPorSemanaId, authToken);
+  return cancelarReservaMensalPorSemana(
+    {
+      reservasMensalPorSemanaId,
+      users_id: reserva.users_id,
+      atividades_id: reserva.atividades_id,
+      mapadiariodamha_id: reserva.mapadiariodamha_id,
+      dataAtividade: reserva.dataAtividade,
+      atividadeunidade_id: reserva.atividadeunidade_id,
+      academias_id: reserva.academias_id,
+      responsavel_id: reserva.responsavel_id,
+    },
+    authToken,
+  );
 }

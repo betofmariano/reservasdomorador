@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Modal,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -34,6 +35,7 @@ export function AlterarSenhaModal({ visible, onClose, onSuccess }: AlterarSenhaM
   const [confirmSenha, setConfirmSenha] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const backdropPressStartedRef = useRef(false);
 
   useEffect(() => {
     if (!visible) {
@@ -41,6 +43,7 @@ export function AlterarSenhaModal({ visible, onClose, onSuccess }: AlterarSenhaM
       setConfirmSenha('');
       setErrorMessage(null);
       setIsSubmitting(false);
+      backdropPressStartedRef.current = false;
     }
   }, [visible]);
 
@@ -50,6 +53,28 @@ export function AlterarSenhaModal({ visible, onClose, onSuccess }: AlterarSenhaM
     }
 
     onClose();
+  }
+
+  function handleBackdropPressIn() {
+    backdropPressStartedRef.current = true;
+  }
+
+  function handleBackdropPress() {
+    const pressStartedOnBackdrop = backdropPressStartedRef.current;
+    backdropPressStartedRef.current = false;
+
+    if (!pressStartedOnBackdrop) {
+      return;
+    }
+
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const selectedText = window.getSelection()?.toString().trim();
+      if (selectedText) {
+        return;
+      }
+    }
+
+    handleClose();
   }
 
   async function handleConfirm() {
@@ -94,9 +119,25 @@ export function AlterarSenhaModal({ visible, onClose, onSuccess }: AlterarSenhaM
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={handleClose}>
-      <View style={styles.overlay}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
-        <View style={[styles.card, isWide && styles.cardWide]}>
+      <View style={styles.overlay} pointerEvents="box-none">
+        <Pressable
+          style={styles.backdrop}
+          onPressIn={handleBackdropPressIn}
+          onPress={handleBackdropPress}
+          tabIndex={-1}
+        />
+        <View
+          style={[styles.card, isWide && styles.cardWide]}
+          onTouchStart={() => {
+            backdropPressStartedRef.current = false;
+          }}
+          {...(Platform.OS === 'web'
+            ? {
+                onMouseDown: () => {
+                  backdropPressStartedRef.current = false;
+                },
+              }
+            : null)}>
           <Text style={styles.title}>Redefinir Senha</Text>
           <View style={styles.divider} />
           <Text style={styles.hint}>* de 4 a 6 dígitos NUMÉRICOS</Text>
@@ -137,12 +178,14 @@ export function AlterarSenhaModal({ visible, onClose, onSuccess }: AlterarSenhaM
           ) : null}
 
           <View style={styles.actions}>
-            <AuthButton label="Voltar" variant="voltar" onPress={handleClose} disabled={isSubmitting} />
             <AuthButton
               label="Confirmar"
               onPress={() => void handleConfirm()}
               disabled={!canConfirm || isSubmitting}
+              style={styles.confirmButton}
+              labelStyle={styles.confirmButtonLabel}
             />
+            <AuthButton label="Voltar" variant="voltar" onPress={handleClose} disabled={isSubmitting} />
           </View>
         </View>
       </View>
@@ -158,6 +201,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 24,
   },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 0,
+  },
   card: {
     width: '100%',
     maxWidth: 420,
@@ -166,7 +213,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 20,
-    zIndex: 1,
+    zIndex: 2,
+    ...Platform.select({
+      web: {
+        userSelect: 'text',
+      },
+    }),
   },
   cardWide: {
     alignSelf: 'center',
@@ -213,5 +265,15 @@ const styles = StyleSheet.create({
   actions: {
     gap: 12,
     marginTop: 8,
+  },
+  confirmButton: {
+    minHeight: 54,
+    shadowOpacity: 0.28,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  confirmButtonLabel: {
+    fontSize: 18,
+    fontWeight: '800',
   },
 });

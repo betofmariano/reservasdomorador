@@ -13,51 +13,15 @@ export type ProfessorHomeMenuItem = {
   modulo: PermissaoGestorModulo;
   label: string;
   route: string;
-  icon: 'checkbox-outline' | 'calendar-outline' | 'stats-chart-outline' | 'list-outline' | 'map-outline' | 'hourglass-outline';
+  icon: 'calendar-outline';
 };
 
 const PROFESSOR_HOME_MENU_ITEMS: ProfessorHomeMenuItem[] = [
-  {
-    modulo: 'listaPresenca',
-    label: 'Lista de Presença',
-    route: '/lista-presenca',
-    icon: 'checkbox-outline',
-  },
   {
     modulo: 'listaReservas',
     label: 'Lista de Reservas',
     route: '/lista-reservas',
     icon: 'calendar-outline',
-  },
-  {
-    modulo: 'listaReservasAtividade',
-    label: 'Lista de Reservas por Atividade',
-    route: '/lista-reservas-atividade',
-    icon: 'calendar-outline',
-  },
-  {
-    modulo: 'resumoPeriodo',
-    label: 'Resumo de Reservas por Período',
-    route: '/lista-reservas-periodo',
-    icon: 'stats-chart-outline',
-  },
-  {
-    modulo: 'programacaoAtividades',
-    label: 'Programação de Atividades',
-    route: '/programacao-atividades',
-    icon: 'list-outline',
-  },
-  {
-    modulo: 'relatorioListaEspera',
-    label: 'Lista de Espera',
-    route: '/relatorio-lista-espera',
-    icon: 'hourglass-outline',
-  },
-  {
-    modulo: 'mapaFrequencia',
-    label: 'Mapa de Frequência',
-    route: '/mapa-frequencia',
-    icon: 'map-outline',
   },
 ];
 

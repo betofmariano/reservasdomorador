@@ -1,10 +1,13 @@
 import {
   API_ENDPOINTS,
   buildCancelarReservaMensalPorSemanaPath,
+  buildMapaMensalPorSemanaItemPath,
+  buildReservasMensalPorSemanaItemPath,
   buildReservasMensalPorSemanaListPath,
   buildReservasUsuarioMensalPorSemanaPath,
 } from '@/constants/api';
-import { authGetRequest, authPatchRequest, authPostRequest } from '@/services/api-client';
+import { authGetRequest, authPatchRequest, authPostRequest, getApiErrorMessage } from '@/services/api-client';
+import { getMapaMensalPorSemanaById } from '@/services/mapa-mensal-por-semana-service';
 import { notifyCriarReservaWhatsAppIfNeeded } from '@/services/reservas-service';
 import type {
   CriarReservaMensalPorSemanaPayload,
@@ -16,6 +19,10 @@ import {
   normalizeReservasUsuarioListFromApi,
 } from '@/utils/normalize-reserva-usuario';
 import { unwrapReservaResponse } from '@/utils/reserva';
+import {
+  resolveNextNumeroCancelamento,
+  type ReservaMensalPorSemanaCancelamentoKey,
+} from '@/utils/reserva-mensal-por-semana-cancelamento';
 
 /**
  * Fluxo MensalPorSemana. Não usado pelo padrão Diária.
@@ -72,12 +79,158 @@ export async function getReservasMensalPorSemanaByAcademia(
 export async function excluirReservaMensalPorSemana(
   reservasMensalPorSemanaId: number,
   authToken: string,
+  payload: { numeroCancelamento: number } = { numeroCancelamento: 1 },
 ): Promise<unknown> {
   return authPatchRequest(
-    buildCancelarReservaMensalPorSemanaPath(reservasMensalPorSemanaId),
+    buildCancelarReservaMensalPorSemanaPath(reservasMensalPorSemanaId, payload.numeroCancelamento),
     authToken,
     {},
   );
+}
+
+export type CancelarReservaMensalPorSemanaInput = ReservaMensalPorSemanaCancelamentoKey & {
+  reservasMensalPorSemanaId: number;
+  academias_id: number;
+  responsavel_id?: number;
+};
+
+function isDuplicateRecordError(error: unknown): boolean {
+  const message = getApiErrorMessage(error).toLowerCase();
+
+  return (
+    message.includes('duplicate record') ||
+    message.includes('duplicidade') ||
+    message.includes('já existe') ||
+    message.includes('ja existe')
+  );
+}
+
+async function loadReservasParaNumeroCancelamento(
+  usersId: number,
+  academiasId: number,
+  authToken: string,
+): Promise<ReservasUsuarioResponse> {
+  const [byUser, byAcademia] = await Promise.all([
+    usersId > 0 ? getReservasUsuarioMensalPorSemana(usersId, authToken) : Promise.resolve([]),
+    academiasId > 0
+      ? getReservasMensalPorSemanaByAcademia(academiasId, authToken)
+      : Promise.resolve([]),
+  ]);
+
+  const byId = new Map<number, (typeof byUser)[number]>();
+
+  for (const reserva of [...byUser, ...byAcademia]) {
+    if (
+      usersId > 0 &&
+      reserva.users_id !== usersId &&
+      reserva.responsavel_id !== usersId
+    ) {
+      continue;
+    }
+
+    byId.set(reserva.id, reserva);
+  }
+
+  return [...byId.values()];
+}
+
+async function persistCancelamentoNoRegistro(
+  reservasMensalPorSemanaId: number,
+  numeroCancelamento: number,
+  authToken: string,
+): Promise<void> {
+  try {
+    await authPatchRequest(buildReservasMensalPorSemanaItemPath(reservasMensalPorSemanaId), authToken, {
+      cancelado: true,
+      numeroCancelamento,
+    });
+  } catch (error) {
+    if (isDuplicateRecordError(error)) {
+      throw error;
+    }
+
+    await authPatchRequest(buildReservasMensalPorSemanaItemPath(reservasMensalPorSemanaId), authToken, {
+      cancelado: true,
+      numero_cancelamento: numeroCancelamento,
+    });
+  }
+}
+
+async function liberarHorarioMapaMensalPorSemana(
+  mapadiariodamhaId: number,
+  authToken: string,
+): Promise<void> {
+  if (mapadiariodamhaId <= 0) {
+    return;
+  }
+
+  const mapa = await getMapaMensalPorSemanaById(mapadiariodamhaId, authToken);
+
+  if (!mapa) {
+    return;
+  }
+
+  await authPatchRequest(buildMapaMensalPorSemanaItemPath(mapadiariodamhaId), authToken, {
+    ocupacao: Math.max(0, mapa.ocupacao - 1),
+    reservasmensalporsemana_id: 0,
+  });
+}
+
+export async function cancelarReservaMensalPorSemana(
+  reserva: CancelarReservaMensalPorSemanaInput,
+  authToken: string,
+): Promise<unknown> {
+  const ownerId = reserva.users_id > 0 ? reserva.users_id : reserva.responsavel_id ?? 0;
+  const reservas = await loadReservasParaNumeroCancelamento(
+    ownerId,
+    reserva.academias_id,
+    authToken,
+  );
+  const current =
+    reservas.find(
+      (item) =>
+        item.id === reserva.reservasMensalPorSemanaId ||
+        item.reservasdamha_id === reserva.reservasMensalPorSemanaId,
+    ) ?? null;
+  const cancelKey = {
+    users_id: ownerId,
+    atividades_id: current?.atividades_id || reserva.atividades_id,
+    mapadiariodamha_id: current?.mapadiariodamha_id || reserva.mapadiariodamha_id,
+    dataAtividade: current?.dataAtividade || reserva.dataAtividade,
+    atividadeunidade_id: current?.atividadeunidade_id ?? reserva.atividadeunidade_id,
+    numeroCancelamento: current?.numeroCancelamento ?? 0,
+  };
+  const historico = current
+    ? reservas.some(
+        (item) =>
+          item.id === current.id || item.reservasdamha_id === current.reservasdamha_id,
+      )
+      ? reservas
+      : [...reservas, current]
+    : [...reservas, cancelKey];
+  let numeroAtual = resolveNextNumeroCancelamento(cancelKey, historico);
+
+  // O endpoint /cancelarReservaMensalPorSemana faz ADD de uma cópia. Incrementar o
+  // registro atual e depois chamar esse ADD gera a mesma chave única outra vez.
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    try {
+      await persistCancelamentoNoRegistro(
+        reserva.reservasMensalPorSemanaId,
+        numeroAtual,
+        authToken,
+      );
+      await liberarHorarioMapaMensalPorSemana(cancelKey.mapadiariodamha_id, authToken);
+      return { mensagem: 'Reserva cancelada com sucesso.' };
+    } catch (error) {
+      if (!isDuplicateRecordError(error) || attempt === 7) {
+        throw error;
+      }
+
+      numeroAtual += 1;
+    }
+  }
+
+  throw new Error('Não foi possível cancelar esta reserva. Tente novamente.');
 }
 
 export async function criarReservaMensalPorSemana(

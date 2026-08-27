@@ -1,6 +1,6 @@
 {
   "name": "Reservas do Morador",
-  "short_name": "Reservas",
+  "short_name": "Reservas do Morador",
   "description": "Reservas de espaços do condomínio com facilidade e justiça.",
   "start_url": "https://reservasdomorador.com.br/",
   "scope": "https://reservasdomorador.com.br/",

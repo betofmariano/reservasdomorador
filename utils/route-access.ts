@@ -7,19 +7,12 @@ import {
   shouldShowUsuariosInHeaderMenu,
 } from '@/utils/club-config';
 
-const PATROCINADOR_ROUTES = new Set([
-  'patrocinador',
-  'gerenciar-publicidade',
-  'resumo-publicidade',
-  'aprovar-publicidade',
-]);
+const PATROCINADOR_ROUTES = new Set(['patrocinador']);
 
 export const ADMINISTRACAO_SISTEMA_ROUTES = new Set([
   'lista-acessos',
   'lista-logins',
   'lista-logados',
-  'resumo-publicidade',
-  'aprovar-publicidade',
 ]);
 
 export const ADMINISTRACAO_CLUBE_ROUTES = new Set([
@@ -27,14 +20,9 @@ export const ADMINISTRACAO_CLUBE_ROUTES = new Set([
   'cadastro-atividades',
   'cadastro-horarios',
   'lista-usuarios-gestor',
-  'lista-reservas-atividade',
-  'lista-reservas-periodo',
-  'programacao-atividades',
-  'mapa-frequencia',
-  'relatorio-lista-espera',
 ]);
 
-const ADMINISTRACAO_SHARED_MENU_ROUTES = new Set(['lista-presenca', 'lista-reservas']);
+const ADMINISTRACAO_SHARED_MENU_ROUTES = new Set(['lista-reservas']);
 
 /** Telas de perfil e uso comum — sempre acessíveis com sessão válida. */
 export const PUBLIC_AUTHENTICATED_ROUTES = new Set([
@@ -42,17 +30,13 @@ export const PUBLIC_AUTHENTICATED_ROUTES = new Set([
   'minhas-reservas',
   'mapa-horarios',
   'reservar-horario',
-  'lista-espera',
-  'lista-espera-horarios',
-  'patrocinador',
-  'gerenciar-publicidade',
 ]);
 
 /** Páginas públicas — abrem sem login (espelho do site Bubble). */
-export const PUBLIC_UNAUTHENTICATED_ROUTES = new Set(['patrocinador']);
+export const PUBLIC_UNAUTHENTICATED_ROUTES = new Set<string>();
 
 /** Rotas que não devem abrir o modal de seleção de local. */
-export const SKIP_LOCAL_SELECTION_ROUTES = new Set(['patrocinador', 'gerenciar-publicidade']);
+export const SKIP_LOCAL_SELECTION_ROUTES = new Set<string>();
 
 export function isPublicUnauthenticatedRoute(routeName: string): boolean {
   if (APP_OCULTAR_PATROCINADORES && PATROCINADOR_ROUTES.has(routeName)) {

@@ -8,13 +8,7 @@ export const PUBLICIDADE_ENDPOINTS = {
   mostrarpublixano: '/mostrarpublixano',
   patrocinioUltimaTela: '/patrocinioUltimaTela',
   patrocinioUltimoVisto: '/patrocinioUltimoVisto',
-  patrocinadorAlterarDados: '/patrocinadorAlterarDados',
-  patrocinadorAprovarDados: '/patrocinadorAprovarDados',
 } as const;
-
-export function buildPatrocinadorItemPath(patrocinadoresId: number): string {
-  return `${PUBLICIDADE_ENDPOINTS.patrocinadores}/${patrocinadoresId}`;
-}
 
 export const API_ENDPOINTS = {
   auth: {
@@ -48,8 +42,6 @@ export const API_ENDPOINTS = {
   usersbloqueados: '/usersbloqueados',
   pesquisarUsuario: '/pesquisarUsuario',
   jogos: '/jogos',
-  /** GET /plataforma — totais públicos da página /patrocinador. */
-  plataforma: '/plataforma',
   cancelarJogo: '/cancelarJogo',
   sendWzapEspera: '/sendWzapEspera',
   sendWzapAdicionar: '/sendWzapAdicionar',
@@ -220,8 +212,25 @@ export function buildReservasMensalPorSemanaListPath(academiasId: number): strin
   return `${API_ENDPOINTS.reservasMensalPorSemana}?${params.toString()}`;
 }
 
-export function buildCancelarReservaMensalPorSemanaPath(reservasId: number): string {
-  return `${API_ENDPOINTS.cancelarReservaMensalPorSemana}/${reservasId}`;
+export function buildReservasMensalPorSemanaItemPath(reservasMensalPorSemanaId: number): string {
+  return `${API_ENDPOINTS.reservasMensalPorSemana}/${reservasMensalPorSemanaId}`;
+}
+
+export function buildCancelarReservaMensalPorSemanaPath(
+  reservasId: number,
+  numeroCancelamento?: number,
+): string {
+  const path = `${API_ENDPOINTS.cancelarReservaMensalPorSemana}/${reservasId}`;
+
+  if (numeroCancelamento == null) {
+    return path;
+  }
+
+  const params = new URLSearchParams({
+    numeroCancelamento: String(numeroCancelamento),
+  });
+
+  return `${path}?${params.toString()}`;
 }
 
 export function buildReservaItemPath(reservasId: number): string {

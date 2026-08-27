@@ -15,7 +15,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AuthTabSwitcher, type AuthTab } from '@/components/auth-tab-switcher';
 import { AppVersionLabel } from '@/components/app-version-label';
 import { LoginForm } from '@/components/login-form';
-import { MATCHPLACE_LOGO_TAP_HINT, MatchPlaceLogo } from '@/components/matchplace-logo';
+import { MatchPlaceLogo } from '@/components/matchplace-logo';
 import { SignupForm } from '@/components/signup-form';
 import { WebScreenContainer } from '@/components/web-screen-container';
 import { useAuth } from '@/contexts/auth-context';
@@ -89,7 +89,6 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}>
           <View style={styles.logoBlock}>
             <MatchPlaceLogo size="large" style={styles.logo} />
-            <Text style={styles.logoHint}>{MATCHPLACE_LOGO_TAP_HINT}</Text>
           </View>
 
           <AuthTabSwitcher
@@ -145,14 +144,6 @@ const styles = StyleSheet.create({
   },
   logo: {
     marginBottom: 0,
-  },
-  logoHint: {
-    marginTop: 8,
-    maxWidth: 240,
-    fontSize: 12,
-    lineHeight: 16,
-    color: COLORS.muted,
-    textAlign: 'center',
   },
   subtitle: {
     width: '100%',

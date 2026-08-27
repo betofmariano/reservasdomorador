@@ -25,6 +25,7 @@ export type ReservaUsuario = {
   parceiro2_id: number;
   created_at: number;
   cancelamentoAutomatico: number | null;
+  numeroCancelamento: number;
   responsavel: JogoJogador | null;
   adversario: JogoJogador | null;
   parceiro1?: JogoJogador | null;
