@@ -2,7 +2,7 @@
   "expo": {
     "name": "Reservas do Morador",
     "slug": "reservasdomorador",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "reservasdomorador",
