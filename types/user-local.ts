@@ -13,7 +13,7 @@ export type UserLocalAssociation = {
   cienteCancelamento: boolean;
   matricula: string;
   socioTitulo: string;
-  complemento: string;
+  endereco: string;
   dataRegulamento: number | null;
 };
 

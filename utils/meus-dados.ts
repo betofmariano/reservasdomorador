@@ -6,11 +6,11 @@ export const MEUS_DADOS_MESSAGES = {
   nomeRequired: 'Informe seu nome.',
   nomeIncomplete: 'Informe nome e sobrenome.',
   telefoneInvalid: 'Informe um telefone válido.',
-  complementoRequired: ASSOCIACAO_LOCAL_LABELS.complementoObrigatorio,
+  complementoRequired: ASSOCIACAO_LOCAL_LABELS.enderecoObrigatorio,
   noChanges: 'Nenhuma alteração foi informada.',
   nomeSuccess: 'Nome atualizado com sucesso.',
   nomeUpdateError: 'Não foi possível atualizar seu nome. Tente novamente.',
-  complementoSuccess: 'Complemento atualizado com sucesso.',
+  complementoSuccess: 'Endereço atualizado com sucesso.',
   telefoneSuccess: 'Solicitação de telefone enviada com sucesso.',
   telefoneSuccessHint: 'A alteração de telefone será analisada antes de ser aplicada.',
   success: 'Alterações enviadas com sucesso.',
@@ -104,7 +104,7 @@ export function buildOriginalValues(user: User): MeusDadosOriginalValues {
   return {
     nome: user.nome ?? '',
     telefoneDigits: getOriginalPhoneDigits(user),
-    complemento: user.complemento ?? '',
+    complemento: user.endereco ?? '',
     foto: user.foto ?? '',
   };
 }

@@ -66,7 +66,7 @@ type SignUpData = {
   photoAsset: SignupPhotoAsset | null;
   matricula: string;
   requiresMatricula: boolean;
-  complemento: string;
+  endereco: string;
   requiresComplemento: boolean;
 };
 
@@ -119,7 +119,7 @@ function validateSignUpData(data: SignUpData): string | null {
     requiresMatricula: data.requiresMatricula,
     matricula: data.matricula,
     requiresComplemento: data.requiresComplemento,
-    complemento: data.complemento,
+    endereco: data.endereco,
   });
 }
 
@@ -358,7 +358,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         telefoneLimpo: normalizePhoneForApi(data.phone),
         password: data.password,
         matricula: data.requiresMatricula ? data.matricula.trim() : '',
-        complemento: data.requiresComplemento ? data.complemento.trim() : '',
+        endereco: data.requiresComplemento ? data.endereco.trim() : '',
         condominio_id: condominioId,
         Foto: '',
         ultimaPublicidadeData: null,

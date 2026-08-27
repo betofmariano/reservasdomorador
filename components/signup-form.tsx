@@ -62,7 +62,7 @@ export function SignupForm({ onSubmittingChange }: SignupFormProps) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [academiasId, setAcademiasId] = useState<number | null>(null);
   const [matricula, setMatricula] = useState('');
-  const [complemento, setComplemento] = useState('');
+  const [endereco, setEndereco] = useState('');
   const [photoAsset, setPhotoAsset] = useState<SignupPhotoAsset | null>(null);
   const [academias, setAcademias] = useState<Academia[]>([]);
   const [isLoadingAcademias, setIsLoadingAcademias] = useState(true);
@@ -117,7 +117,7 @@ export function SignupForm({ onSubmittingChange }: SignupFormProps) {
       requiresMatricula,
       matricula,
       requiresComplemento,
-      complemento,
+      endereco,
     }),
     [
       name,
@@ -129,7 +129,7 @@ export function SignupForm({ onSubmittingChange }: SignupFormProps) {
       requiresMatricula,
       matricula,
       requiresComplemento,
-      complemento,
+      endereco,
     ],
   );
 
@@ -143,7 +143,7 @@ export function SignupForm({ onSubmittingChange }: SignupFormProps) {
     }
 
     if (!nextAcademia?.complemento) {
-      setComplemento('');
+      setEndereco('');
     }
   }
 
@@ -163,10 +163,10 @@ export function SignupForm({ onSubmittingChange }: SignupFormProps) {
         return;
       }
 
-      if (validationError === SIGNUP_VALIDATION_MESSAGES.complementoRequired) {
+      if (validationError === SIGNUP_VALIDATION_MESSAGES.enderecoRequired) {
         showSignupError(
-          SIGNUP_VALIDATION_MESSAGES.complementoRequiredMessage,
-          SIGNUP_VALIDATION_MESSAGES.complementoRequiredTitle,
+          SIGNUP_VALIDATION_MESSAGES.enderecoRequiredMessage,
+          SIGNUP_VALIDATION_MESSAGES.enderecoRequiredTitle,
         );
         return;
       }
@@ -195,7 +195,7 @@ export function SignupForm({ onSubmittingChange }: SignupFormProps) {
           photoAsset,
           matricula,
           requiresMatricula,
-          complemento,
+          endereco,
           requiresComplemento,
         },
         { larguraPagina: Math.round(screenWidth) },
@@ -289,14 +289,14 @@ export function SignupForm({ onSubmittingChange }: SignupFormProps) {
         {requiresComplemento ? (
           <>
             <AuthTextField
-              label="Complemento"
-              value={complemento}
-              onChangeText={setComplemento}
+              label="Endereço"
+              value={endereco}
+              onChangeText={setEndereco}
               autoCapitalize="sentences"
               editable={!isSubmitting}
             />
-            <Text style={styles.complementoOrientacao}>
-              {ASSOCIACAO_LOCAL_LABELS.complementoOrientacao}
+            <Text style={styles.enderecoOrientacao}>
+              {ASSOCIACAO_LOCAL_LABELS.enderecoOrientacao}
             </Text>
           </>
         ) : null}
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
     marginTop: -8,
     marginBottom: 8,
   },
-  complementoOrientacao: {
+  enderecoOrientacao: {
     width: '100%',
     fontSize: 13,
     color: COLORS.muted,

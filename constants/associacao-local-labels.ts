@@ -9,11 +9,11 @@ export const ASSOCIACAO_LOCAL_LABELS = {
   obrigatorio: 'Selecione seu local de associação.',
   matriculaExigida:
     'Este local de associação exige título de sócio. Informe o número da matrícula para continuar.',
-  complementoObrigatorio: 'Informe o complemento.',
-  complementoObrigatorioTitulo: 'Complemento obrigatório',
-  complementoObrigatorioMensagem:
-    'Este local de associação exige complemento. Informe bloco, apartamento ou casa para continuar.',
-  complementoOrientacao: 'Consulte o gestor para saber o que informar.',
+  enderecoObrigatorio: 'Informe o endereço.',
+  enderecoObrigatorioTitulo: 'Endereço obrigatório',
+  enderecoObrigatorioMensagem:
+    'Este local de associação exige endereço. Informe bloco, apartamento ou casa para continuar.',
+  enderecoOrientacao: 'Consulte o gestor para saber o que informar.',
   acessoBloqueado: 'Seu acesso está bloqueado. Entre em contato com o local de associação.',
   cadastroPendente:
     'Seu cadastro ainda não foi aprovado. Aguarde a confirmação do local de associação.',

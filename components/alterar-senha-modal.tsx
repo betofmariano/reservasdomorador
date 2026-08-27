@@ -94,10 +94,9 @@ export function AlterarSenhaModal({ visible, onClose, onSuccess }: AlterarSenhaM
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={handleClose}>
-      <Pressable style={styles.overlay} onPress={handleClose}>
-        <Pressable
-          style={[styles.card, isWide && styles.cardWide]}
-          onPress={(event) => event.stopPropagation()}>
+      <View style={styles.overlay}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
+        <View style={[styles.card, isWide && styles.cardWide]}>
           <Text style={styles.title}>Redefinir Senha</Text>
           <View style={styles.divider} />
           <Text style={styles.hint}>* de 4 a 6 dígitos NUMÉRICOS</Text>
@@ -145,8 +144,8 @@ export function AlterarSenhaModal({ visible, onClose, onSuccess }: AlterarSenhaM
               disabled={!canConfirm || isSubmitting}
             />
           </View>
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
   );
 }
@@ -167,6 +166,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 20,
+    zIndex: 1,
   },
   cardWide: {
     alignSelf: 'center',

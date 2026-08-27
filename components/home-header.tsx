@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
 
 import { ChangePhotoModal } from '@/components/change-photo-modal';
-import { MatchPlaceLogoHomeLink } from '@/components/matchplace-logo';
+import { MatchPlaceLogo } from '@/components/matchplace-logo';
 import { UserAvatar } from '@/components/user-avatar';
 import { APP_BUILD, APP_VERSION } from '@/constants/app-version';
 import { useAppDialog } from '@/contexts/app-dialog-context';
@@ -16,7 +15,6 @@ const COLORS = {
 };
 
 const HEADER_LOGO_WIDTH = 72;
-const HEADER_LOGO_HEIGHT = 97;
 const HEADER_AVATAR_SIZE = 68;
 
 type HomeHeaderProps = {
@@ -24,7 +22,6 @@ type HomeHeaderProps = {
 };
 
 export function HomeHeader({ user }: HomeHeaderProps) {
-  const router = useRouter();
   const { alert } = useAppDialog();
   const { currentAcademia } = useUserContext();
   const [isPhotoModalVisible, setIsPhotoModalVisible] = useState(false);
@@ -45,10 +42,7 @@ export function HomeHeader({ user }: HomeHeaderProps) {
 
   return (
     <View style={styles.headerContainer}>
-      <MatchPlaceLogoHomeLink
-        onPress={() => router.replace('/')}
-        logoStyle={styles.logo}
-      />
+      <MatchPlaceLogo style={styles.logo} />
 
       <View style={styles.academiaContainer}>
         {academiaNome ? (
@@ -93,7 +87,6 @@ const styles = StyleSheet.create({
   },
   logo: {
     width: HEADER_LOGO_WIDTH,
-    height: HEADER_LOGO_HEIGHT,
   },
   academiaContainer: {
     flex: 1,

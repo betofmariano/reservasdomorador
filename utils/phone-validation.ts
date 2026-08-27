@@ -84,10 +84,10 @@ export function alertMatriculaRequired(): void {
   });
 }
 
-export function alertComplementoRequired(): void {
+export function alertEnderecoRequired(): void {
   void appAlert({
-    title: SIGNUP_VALIDATION_MESSAGES.complementoRequiredTitle,
-    message: SIGNUP_VALIDATION_MESSAGES.complementoRequiredMessage,
+    title: SIGNUP_VALIDATION_MESSAGES.enderecoRequiredTitle,
+    message: SIGNUP_VALIDATION_MESSAGES.enderecoRequiredMessage,
   });
 }
 
@@ -99,9 +99,9 @@ export const SIGNUP_VALIDATION_MESSAGES = {
   matriculaRequired: 'Informe o número da matrícula.',
   matriculaRequiredTitle: 'Matrícula obrigatória',
   matriculaRequiredMessage: ASSOCIACAO_LOCAL_LABELS.matriculaExigida,
-  complementoRequired: ASSOCIACAO_LOCAL_LABELS.complementoObrigatorio,
-  complementoRequiredTitle: ASSOCIACAO_LOCAL_LABELS.complementoObrigatorioTitulo,
-  complementoRequiredMessage: ASSOCIACAO_LOCAL_LABELS.complementoObrigatorioMensagem,
+  enderecoRequired: ASSOCIACAO_LOCAL_LABELS.enderecoObrigatorio,
+  enderecoRequiredTitle: ASSOCIACAO_LOCAL_LABELS.enderecoObrigatorioTitulo,
+  enderecoRequiredMessage: ASSOCIACAO_LOCAL_LABELS.enderecoObrigatorioMensagem,
   photoRequired: 'Selecione ou tire uma foto para continuar.',
 };
 
@@ -121,7 +121,7 @@ export type SignupValidationParams = {
   requiresMatricula?: boolean;
   matricula?: string;
   requiresComplemento?: boolean;
-  complemento?: string;
+  endereco?: string;
 };
 
 export function getSignupValidationError(params: SignupValidationParams): string | null {
@@ -157,8 +157,8 @@ export function getSignupValidationError(params: SignupValidationParams): string
     return SIGNUP_VALIDATION_MESSAGES.matriculaRequired;
   }
 
-  if (params.requiresComplemento && !params.complemento?.trim()) {
-    return SIGNUP_VALIDATION_MESSAGES.complementoRequired;
+  if (params.requiresComplemento && !params.endereco?.trim()) {
+    return SIGNUP_VALIDATION_MESSAGES.enderecoRequired;
   }
 
   if (!params.hasPhoto) {

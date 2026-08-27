@@ -18,7 +18,7 @@ import { UserAvatar } from '@/components/user-avatar';
 import { HOME_MAX_BUTTON_WIDTH } from '@/constants/web-layout';
 import { useAppToast } from '@/contexts/app-toast-context';
 import { getApiErrorMessage } from '@/services/api-client';
-import { getUserPhoto, updateUserPhoto } from '@/services/user-service';
+import { getUserPhoto, getUserPhotoByUsersId, updateUserPhoto } from '@/services/user-service';
 import type { PhotoAsset } from '@/types/user-photo';
 import type { UsuarioListItem } from '@/types/usuario';
 import { appAlert } from '@/utils/app-dialog-bridge';
@@ -43,6 +43,7 @@ type UsuarioContatoModalProps = {
   allowPhotoChange?: boolean;
   authToken?: string | null;
   loadPhotoOnOpen?: boolean;
+  loadPhotoFromUsersId?: boolean;
   onPhotoUpdated?: (photoUrl: string | null) => void;
   showComplementoField?: boolean;
   showSocioTituloField?: boolean;
@@ -50,7 +51,7 @@ type UsuarioContatoModalProps = {
   socioTitulo?: string;
   allowFieldEdit?: boolean;
   onSaveExtraFields?: (values: {
-    complemento?: string;
+    endereco?: string;
     socioTitulo?: string;
   }) => Promise<string | null>;
 };
@@ -93,6 +94,7 @@ export function UsuarioContatoModal({
   allowPhotoChange = false,
   authToken = null,
   loadPhotoOnOpen = false,
+  loadPhotoFromUsersId = false,
   onPhotoUpdated,
   showComplementoField = false,
   showSocioTituloField = false,
@@ -161,6 +163,38 @@ export function UsuarioContatoModal({
     setPhotoStep('contact');
     setSelectedPhoto(null);
 
+    if (loadPhotoFromUsersId) {
+      if (usuario.id <= 0) {
+        setDisplayPhotoUrl(null);
+        return;
+      }
+
+      let cancelled = false;
+      setIsLoadingPhoto(true);
+      setDisplayPhotoUrl(null);
+
+      void getUserPhotoByUsersId(usuario.id, authToken)
+        .then((foto) => {
+          if (!cancelled) {
+            setDisplayPhotoUrl(foto);
+          }
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setDisplayPhotoUrl(null);
+          }
+        })
+        .finally(() => {
+          if (!cancelled) {
+            setIsLoadingPhoto(false);
+          }
+        });
+
+      return () => {
+        cancelled = true;
+      };
+    }
+
     if (!loadPhotoOnOpen) {
       setDisplayPhotoUrl(usuario.foto ?? null);
       return;
@@ -195,7 +229,7 @@ export function UsuarioContatoModal({
     return () => {
       cancelled = true;
     };
-  }, [authToken, loadPhotoOnOpen, usuario, visible]);
+  }, [authToken, loadPhotoFromUsersId, loadPhotoOnOpen, usuario?.foto, usuario?.id, usuario?.userslocalId, visible]);
 
   function handleClose() {
     if (isBusy) {
@@ -291,17 +325,17 @@ export function UsuarioContatoModal({
       return;
     }
 
-    const payload: { complemento?: string; socioTitulo?: string } = {};
+    const payload: { endereco?: string; socioTitulo?: string } = {};
 
     if (showComplementoField && complementoDraft.trim() !== complemento.trim()) {
-      payload.complemento = complementoDraft.trim();
+      payload.endereco = complementoDraft.trim();
     }
 
     if (showSocioTituloField && socioTituloDraft.trim() !== socioTitulo.trim()) {
       payload.socioTitulo = socioTituloDraft.trim();
     }
 
-    if (!('complemento' in payload) && !('socioTitulo' in payload)) {
+    if (!('endereco' in payload) && !('socioTitulo' in payload)) {
       return;
     }
 
@@ -426,7 +460,7 @@ export function UsuarioContatoModal({
 
                     {showComplementoField ? (
                       <AuthTextField
-                        label="Complemento"
+                        label="Endereço"
                         value={complementoDraft}
                         onChangeText={setComplementoDraft}
                         autoCapitalize="sentences"

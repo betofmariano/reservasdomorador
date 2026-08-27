@@ -32,7 +32,7 @@ export function AdminTableScrollContainer({
     <View
       style={[
         styles.tableWrapper,
-        needsHorizontalScroll
+        needsHorizontalScroll || shouldCenterTable
           ? { width: minWidth, minWidth, maxWidth: tableMaxWidth }
           : { width: '100%', maxWidth: tableMaxWidth },
       ]}>

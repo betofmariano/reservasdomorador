@@ -19,7 +19,6 @@ const COLORS = {
 };
 
 const HEADER_LOGO_WIDTH = 72;
-const HEADER_LOGO_HEIGHT = 97;
 const HEADER_AVATAR_SIZE = 68;
 
 type ScreenHeaderProps = {
@@ -117,7 +116,6 @@ const styles = StyleSheet.create({
   },
   logo: {
     width: HEADER_LOGO_WIDTH,
-    height: HEADER_LOGO_HEIGHT,
   },
   menuButton: {
     width: 48,

@@ -44,7 +44,6 @@ export const API_ENDPOINTS = {
   meusLocais: '/meusLocais',
   usersLocalAprovar: '/usersLocalAprovar',
   usersLocalGestor: '/usersLocalGestor',
-  usersLocalProfessor: '/usersLocalProfessor',
   usersLocalBloqueio: '/usersLocalBloqueio',
   usersbloqueados: '/usersbloqueados',
   pesquisarUsuario: '/pesquisarUsuario',
@@ -130,9 +129,10 @@ export function buildHorarioItemPath(horariosId: number): string {
   return `${API_ENDPOINTS.horarios}/${horariosId}`;
 }
 
+/** GET /userslocalSemFoto?condominio_id= — lista do local, sem foto. Auth required. */
 export function buildUsersLocalListPath(academiasId: number): string {
   const params = new URLSearchParams({
-    academias_id: String(academiasId),
+    condominio_id: String(academiasId),
   });
 
   return `${API_ENDPOINTS.userslocalSemFoto}?${params.toString()}`;
@@ -191,15 +191,6 @@ export function buildUsersLocalGestorPath(userslocalId: number, gestor: boolean)
   return `${API_ENDPOINTS.usersLocalGestor}?${params.toString()}`;
 }
 
-export function buildUsersLocalProfessorPath(userslocalId: number, professor: boolean): string {
-  const params = new URLSearchParams({
-    userslocal_id: String(userslocalId),
-    professor: String(professor),
-  });
-
-  return `${API_ENDPOINTS.usersLocalProfessor}?${params.toString()}`;
-}
-
 export function buildUsersLocalBloqueioPath(userslocalId: number, bloqueado: boolean): string {
   const params = new URLSearchParams({
     userslocal_id: String(userslocalId),
@@ -209,20 +200,8 @@ export function buildUsersLocalBloqueioPath(userslocalId: number, bloqueado: boo
   return `${API_ENDPOINTS.usersLocalBloqueio}?${params.toString()}`;
 }
 
-export function buildUsersBloqueadosListPath(academiasId: number): string {
-  const params = new URLSearchParams({
-    academias_id: String(academiasId),
-  });
-
-  return `${API_ENDPOINTS.usersbloqueados}?${params.toString()}`;
-}
-
 export function buildUsersBloqueadosCreatePath(): string {
   return API_ENDPOINTS.usersbloqueados;
-}
-
-export function buildUsersBloqueadosDeletePath(usersBloqueadosId: number): string {
-  return `${API_ENDPOINTS.usersbloqueados}/${usersBloqueadosId}`;
 }
 
 export function buildReservasUsuarioPath(usersId: number): string {

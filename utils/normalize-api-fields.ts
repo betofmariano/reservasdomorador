@@ -109,6 +109,25 @@ export function readString(record: Record<string, unknown>, keys: string[]): str
   return '';
 }
 
+/** userslocal.endereco; `complemento` fica só como fallback de registros antigos. */
+export function readEndereco(
+  ...records: Array<Record<string, unknown> | null | undefined>
+): string {
+  for (const record of records) {
+    if (!record) {
+      continue;
+    }
+
+    const value = readString(record, ['endereco', 'complemento']).trim();
+
+    if (value) {
+      return value;
+    }
+  }
+
+  return '';
+}
+
 export function readBoolean(record: Record<string, unknown>, keys: string[]): boolean | undefined {
   for (const key of keys) {
     if (!(key in record)) {

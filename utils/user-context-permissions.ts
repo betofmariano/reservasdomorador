@@ -117,10 +117,7 @@ export function buildUserContextPermissions(
     moduloAccessInput,
     'resumoPeriodo',
   );
-  const podeAcessarConfiguracaoLocal =
-    podeGerirLocal &&
-    (administrador ||
-      (currentAcademia ? isModuloAtivoNaAcademia(currentAcademia, 'configuracao') : false));
+  const podeAcessarConfiguracaoLocal = podeGerirLocal;
   const podeAcessarProgramacaoAtividades = canAccessModuloRelatorio(
     moduloAccessInput,
     'programacaoAtividades',

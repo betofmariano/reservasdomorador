@@ -3,11 +3,38 @@ import {
   normalizeBoolean,
   normalizeRecordId,
   readAcademiaId,
+  readEndereco,
   readPersonName,
   readString,
   readUserId,
   unwrapApiList,
 } from '@/utils/normalize-api-fields';
+
+function looksLikePhotoValue(value: string): boolean {
+  const trimmed = value.trim().toLowerCase();
+
+  return (
+    trimmed.startsWith('http') ||
+    trimmed.startsWith('data:image') ||
+    trimmed.startsWith('//') ||
+    trimmed.includes('/vault/') ||
+    /\.(jpg|jpeg|png|webp|gif|svg)(\?|$)/.test(trimmed)
+  );
+}
+
+function readSafePersonName(record: Record<string, unknown> | null): string {
+  if (!record) {
+    return '';
+  }
+
+  const nome = readPersonName(record);
+
+  if (!nome || looksLikePhotoValue(nome)) {
+    return '';
+  }
+
+  return nome;
+}
 
 export function normalizeUserLocalFromApi(raw: unknown): UserLocalAssociation | null {
   if (!raw || typeof raw !== 'object') {
@@ -19,7 +46,7 @@ export function normalizeUserLocalFromApi(raw: unknown): UserLocalAssociation | 
   const usersId = readUserId(record);
   const academiasId = readAcademiaId(record);
 
-  if (id == null || usersId == null || academiasId == null) {
+  if (id == null || usersId == null) {
     return null;
   }
 
@@ -30,15 +57,17 @@ export function normalizeUserLocalFromApi(raw: unknown): UserLocalAssociation | 
         ? (record.users as Record<string, unknown>)
         : null;
 
+  const nome = readSafePersonName(nestedUser) || readSafePersonName(record);
+
   return {
     id,
-    nome: readPersonName(record),
+    nome,
     ultimoAcesso:
       typeof record.ultimoAcesso === 'number'
         ? record.ultimoAcesso
         : normalizeRecordId(record.ultimoAcesso),
     users_id: usersId,
-    academias_id: academiasId,
+    academias_id: academiasId ?? 0,
     aprovado: normalizeBoolean(record.aprovado),
     administrador:
       (nestedUser ? normalizeBoolean(nestedUser.administrador) : false) ||
@@ -50,7 +79,7 @@ export function normalizeUserLocalFromApi(raw: unknown): UserLocalAssociation | 
       (nestedUser ? normalizeBoolean(nestedUser.bloqueado) : false),
     cienteCancelamento: normalizeBoolean(record.cienteCancelamento),
     matricula: readString(record, ['matricula', 'socioTitulo']),
-    complemento: readString(record, ['complemento']),
+    endereco: readEndereco(record, nestedUser),
     socioTitulo: readString(record, ['socioTitulo', 'matricula']),
     dataRegulamento:
       typeof record.dataRegulamento === 'number'

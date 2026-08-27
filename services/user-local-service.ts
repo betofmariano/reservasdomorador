@@ -63,7 +63,7 @@ export function buildAssociationFromUser(user: User): UserLocalAssociation | nul
     cienteCancelamento: user.cienteCancelamento,
     matricula: user.matricula,
     socioTitulo: user.matricula,
-    complemento: user.complemento,
+    endereco: user.endereco,
     dataRegulamento: null,
   };
 }

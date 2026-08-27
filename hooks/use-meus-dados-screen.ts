@@ -91,8 +91,8 @@ export function useMeusDadosScreen({ user, authToken }: UseMeusDadosScreenParams
     originalsRef.current = buildOriginalValues(user);
     setNome(user.nome ?? '');
     setTelefone(formatBrazilianMobilePhone(getOriginalPhoneDigits(user)));
-    setComplemento(user.complemento ?? '');
-    setComplementoRegistrado(user.complemento ?? '');
+    setComplemento(user.endereco ?? '');
+    setComplementoRegistrado(user.endereco ?? '');
     setNomeError(null);
     setTelefoneError(null);
     setComplementoError(null);
@@ -155,7 +155,7 @@ export function useMeusDadosScreen({ user, authToken }: UseMeusDadosScreenParams
           return;
         }
 
-        const nextComplemento = registeredComplemento.trim() || user.complemento || '';
+        const nextComplemento = registeredComplemento.trim() || user.endereco || '';
         setComplemento(nextComplemento);
         setComplementoRegistrado(nextComplemento);
         originalsRef.current = {
@@ -315,7 +315,7 @@ export function useMeusDadosScreen({ user, authToken }: UseMeusDadosScreenParams
             effectiveAcademiasId ?? undefined,
           );
 
-          patchUser({ complemento: normalizedComplemento });
+          patchUser({ endereco: normalizedComplemento });
           originalsRef.current = {
             ...originalsRef.current,
             complemento: normalizedComplemento,

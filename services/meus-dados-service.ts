@@ -25,7 +25,7 @@ export async function getUserComplementoFromRecords(
   const associations = await getUserLocalAssociations(user.id);
   const association = findUserLocalAssociationForAcademia(associations, resolvedAcademiasId);
 
-  return association?.complemento ?? '';
+  return association?.endereco ?? '';
 }
 
 export async function updateUserComplementoInRecords(
@@ -46,7 +46,7 @@ export async function updateUserComplementoInRecords(
   await updateUsersLocalRecord(
     association.id,
     {
-      complemento: normalizedComplemento,
+      endereco: normalizedComplemento,
     },
     authToken,
   );

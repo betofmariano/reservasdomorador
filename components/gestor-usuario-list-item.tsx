@@ -5,25 +5,24 @@ import { LogadoBooleanCell } from '@/components/logado-boolean-cell';
 import { UserAvatar } from '@/components/user-avatar';
 import type { GestorUsuarioListItem } from '@/types/usuario';
 import {
-  GESTOR_USUARIOS_COMPLEMENTO_COLUMN_WIDTH,
+  GESTOR_USUARIOS_ACTIONS_COLUMN_WIDTH,
+  GESTOR_USUARIOS_ENDERECO_COLUMN_WIDTH,
   GESTOR_USUARIOS_FLAG_COLUMN_WIDTH,
   GESTOR_USUARIOS_NOME_COLUMN_WIDTH,
-  GESTOR_USUARIOS_SOCIO_COLUMN_WIDTH,
+  GESTOR_USUARIOS_TABLE_COLUMN_GAP,
+  GESTOR_USUARIOS_TABLE_HORIZONTAL_PADDING,
+  GESTOR_USUARIOS_TELEFONE_COLUMN_WIDTH,
+  GESTOR_USUARIOS_ULTIMA_ENTRADA_COLUMN_WIDTH,
 } from '@/utils/gestor-usuario-table-layout';
 
 type GestorUsuarioListItemRowProps = {
   usuario: GestorUsuarioListItem;
   isCurrentUser: boolean;
-  showDeleteButton: boolean;
-  showSocioColumn: boolean;
-  showComplementoColumn: boolean;
-  showAdministradorColumn: boolean;
   tableWidth: number;
   disabled?: boolean;
   onApprovePress: () => void;
   onBlockPress: () => void;
   onGestorPress: () => void;
-  onProfessorPress: () => void;
   onDeletePress: () => void;
   onContactPress: () => void;
 };
@@ -35,23 +34,17 @@ const COLORS = {
   border: '#E2E6EE',
   danger: '#D64545',
   approve: '#1F8A4C',
-  professor: '#6B4FA8',
   gestor: '#0F7A6C',
 };
 
 export function GestorUsuarioListItemRow({
   usuario,
   isCurrentUser,
-  showDeleteButton,
-  showSocioColumn,
-  showComplementoColumn,
-  showAdministradorColumn,
   tableWidth,
   disabled = false,
   onApprovePress,
   onBlockPress,
   onGestorPress,
-  onProfessorPress,
   onDeletePress,
   onContactPress,
 }: GestorUsuarioListItemRowProps) {
@@ -62,6 +55,7 @@ export function GestorUsuarioListItemRow({
       <View style={[styles.colNome, { width: GESTOR_USUARIOS_NOME_COLUMN_WIDTH }]}>
         <UserAvatar name={usuario.nome} photoUrl={null} size={40} />
         <Pressable
+          style={styles.nomePressable}
           onPress={(event) => {
             event.stopPropagation();
             onContactPress();
@@ -79,35 +73,15 @@ export function GestorUsuarioListItemRow({
         {usuario.telefone || '—'}
       </Text>
 
-      {showSocioColumn ? (
-        <Text
-          style={[styles.tableCell, styles.colSocio, { width: GESTOR_USUARIOS_SOCIO_COLUMN_WIDTH }]}
-          numberOfLines={1}>
-          {usuario.socio || '—'}
-        </Text>
-      ) : null}
-
-      {showComplementoColumn ? (
-        <Text
-          style={[
-            styles.tableCell,
-            styles.colComplemento,
-            { width: GESTOR_USUARIOS_COMPLEMENTO_COLUMN_WIDTH },
-          ]}
-          numberOfLines={1}>
-          {usuario.complemento || '—'}
-        </Text>
-      ) : null}
-
-      <View style={styles.colFlag}>
-        <LogadoBooleanCell value={usuario.professor} />
-      </View>
-
-      {showAdministradorColumn ? (
-        <View style={styles.colFlag}>
-          <LogadoBooleanCell value={usuario.administrador} />
-        </View>
-      ) : null}
+      <Text
+        style={[
+          styles.tableCell,
+          styles.colEndereco,
+          { width: GESTOR_USUARIOS_ENDERECO_COLUMN_WIDTH },
+        ]}
+        numberOfLines={1}>
+        {usuario.endereco || '—'}
+      </Text>
 
       <View style={styles.colFlag}>
         <LogadoBooleanCell value={usuario.gestor} />
@@ -121,11 +95,7 @@ export function GestorUsuarioListItemRow({
         <LogadoBooleanCell value={usuario.bloqueado} />
       </View>
 
-      <View
-        style={[
-          styles.actionsCell,
-          showDeleteButton ? styles.actionsCellWithDelete : styles.actionsCellWithoutDelete,
-        ]}>
+      <View style={styles.actionsCell}>
         <Pressable
           style={styles.actionButton}
           onPress={(event) => {
@@ -141,9 +111,7 @@ export function GestorUsuarioListItemRow({
           <Ionicons
             name="ban"
             size={20}
-            color={
-              isDisabled ? COLORS.muted : usuario.bloqueado ? COLORS.approve : COLORS.danger
-            }
+            color={isDisabled ? COLORS.muted : usuario.bloqueado ? COLORS.approve : COLORS.danger}
           />
         </Pressable>
 
@@ -165,65 +133,42 @@ export function GestorUsuarioListItemRow({
             />
           </Pressable>
         ) : (
-          <>
-            <Pressable
-              style={styles.actionButton}
-              onPress={(event) => {
-                event.stopPropagation();
-                onGestorPress();
-              }}
-              disabled={isDisabled}
-              hitSlop={8}
-              accessibilityRole="button"
-              accessibilityLabel={
-                usuario.gestor ? `Remover gestor ${usuario.nome}` : `Definir gestor ${usuario.nome}`
-              }>
-              <Ionicons
-                name={usuario.gestor ? 'briefcase' : 'briefcase-outline'}
-                size={20}
-                color={isDisabled ? COLORS.muted : COLORS.gestor}
-              />
-            </Pressable>
-
-            <Pressable
-              style={styles.actionButton}
-              onPress={(event) => {
-                event.stopPropagation();
-                onProfessorPress();
-              }}
-              disabled={isDisabled}
-              hitSlop={8}
-              accessibilityRole="button"
-              accessibilityLabel={
-                usuario.professor
-                  ? `Remover professor ${usuario.nome}`
-                  : `Definir professor ${usuario.nome}`
-              }>
-              <Ionicons
-                name={usuario.professor ? 'school' : 'school-outline'}
-                size={20}
-                color={isDisabled ? COLORS.muted : COLORS.professor}
-              />
-            </Pressable>
-          </>
-        )}
-
-        {showDeleteButton ? (
           <Pressable
             style={styles.actionButton}
             onPress={(event) => {
               event.stopPropagation();
-              onDeletePress();
+              onGestorPress();
             }}
             disabled={isDisabled}
-            hitSlop={8}>
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={
+              usuario.gestor ? `Remover gestor ${usuario.nome}` : `Definir gestor ${usuario.nome}`
+            }>
             <Ionicons
-              name="trash-outline"
+              name={usuario.gestor ? 'briefcase' : 'briefcase-outline'}
               size={20}
-              color={isDisabled ? COLORS.muted : COLORS.danger}
+              color={isDisabled ? COLORS.muted : COLORS.gestor}
             />
           </Pressable>
-        ) : null}
+        )}
+
+        <Pressable
+          style={styles.actionButton}
+          onPress={(event) => {
+            event.stopPropagation();
+            onDeletePress();
+          }}
+          disabled={isDisabled}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={`Excluir ${usuario.nome}`}>
+          <Ionicons
+            name="trash-outline"
+            size={20}
+            color={isDisabled ? COLORS.muted : COLORS.danger}
+          />
+        </Pressable>
       </View>
 
       <Text style={[styles.tableCell, styles.colUltimaEntrada]} numberOfLines={1}>
@@ -237,9 +182,9 @@ const styles = StyleSheet.create({
   tableRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: GESTOR_USUARIOS_TABLE_COLUMN_GAP,
     paddingVertical: 10,
-    paddingHorizontal: 8,
+    paddingHorizontal: GESTOR_USUARIOS_TABLE_HORIZONTAL_PADDING / 2,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
@@ -252,23 +197,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    overflow: 'hidden',
+  },
+  nomePressable: {
+    flex: 1,
+    minWidth: 0,
   },
   nomeText: {
-    flex: 1,
     fontSize: 14,
     fontWeight: '700',
     color: COLORS.blue,
     textDecorationLine: 'underline',
   },
   colTelefone: {
-    width: 130,
+    width: GESTOR_USUARIOS_TELEFONE_COLUMN_WIDTH,
     flexShrink: 0,
   },
-  colSocio: {
+  colEndereco: {
     flexShrink: 0,
-  },
-  colComplemento: {
-    flexShrink: 0,
+    overflow: 'hidden',
   },
   colFlag: {
     width: GESTOR_USUARIOS_FLAG_COLUMN_WIDTH,
@@ -277,8 +224,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   colUltimaEntrada: {
-    width: 120,
+    width: GESTOR_USUARIOS_ULTIMA_ENTRADA_COLUMN_WIDTH,
     flexShrink: 0,
+    textAlign: 'center',
   },
   actionsCell: {
     flexDirection: 'row',
@@ -286,12 +234,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 4,
     flexShrink: 0,
-  },
-  actionsCellWithDelete: {
-    width: 140,
-  },
-  actionsCellWithoutDelete: {
-    width: 106,
+    width: GESTOR_USUARIOS_ACTIONS_COLUMN_WIDTH,
   },
   actionButton: {
     width: 30,

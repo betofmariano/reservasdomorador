@@ -33,7 +33,6 @@ const GESTOR_ROUTE_MODULOS: Partial<Record<string, PermissaoGestorModulo>> = {
   '/programacao-atividades': 'programacaoAtividades',
   '/relatorio-lista-espera': 'relatorioListaEspera',
   '/mapa-frequencia': 'mapaFrequencia',
-  '/configuracao-local': 'configuracao',
 };
 
 export function normalizePermissoesGestorFromApi(raw: unknown): PermissoesGestor {

@@ -18,7 +18,7 @@ export {
 };
 
 export function buildAcademiaPath(academiaId: number): string {
-  return `${API_ENDPOINTS.academias}/${academiaId}`;
+  return `${API_ENDPOINTS.condominio}/${academiaId}`;
 }
 
 /** @deprecated Use getAcademiaById from academias-service */
@@ -35,7 +35,7 @@ export async function createClub(
   payload: Record<string, unknown>,
   authToken: string,
 ): Promise<Academia> {
-  return authPostRequest<Academia>(API_ENDPOINTS.academias, authToken, payload);
+  return authPostRequest<Academia>(API_ENDPOINTS.condominio, authToken, payload);
 }
 
 /** @deprecated Use updateAcademia from academias-service */

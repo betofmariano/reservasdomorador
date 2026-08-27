@@ -17,7 +17,7 @@ export type User = {
   bloqueado: boolean;
   cienteCancelamento: boolean;
   matricula: string;
-  complemento: string;
+  endereco: string;
   excluido?: boolean;
   localPrioritario?: number | null;
   telefoneIncorreto?: boolean;

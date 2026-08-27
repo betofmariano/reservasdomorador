@@ -3,6 +3,8 @@ import { ActivityIndicator, ScrollView, StyleSheet, useWindowDimensions, View } 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
+import { Ionicons } from '@expo/vector-icons';
+
 import { AdministracaoMenu } from '@/components/administracao-menu';
 import { MenuActionButton } from '@/components/menu-action-button';
 import { ScreenHeader, ScreenHeaderDivider } from '@/components/screen-header';
@@ -15,7 +17,6 @@ import { useAdministracaoMenuAccess } from '@/hooks/use-administracao-menu-acces
 import {
   getAdministracaoMenuButtonWidth,
   getAdministracaoScreenMaxWidth,
-  isAdministracaoWideLayout,
 } from '@/utils/administracao-menu-layout';
 import { getHomeMenuButtonMetrics } from '@/utils/home-menu-button';
 
@@ -31,8 +32,7 @@ export default function AdministracaoScreen() {
   const { permissions } = useUserContext();
   const administracaoAccess = useAdministracaoMenuAccess(user);
   const { canAccess, isCheckingAccess } = administracaoAccess;
-  const isWideLayout = isAdministracaoWideLayout(width);
-  const screenMaxWidth = getAdministracaoScreenMaxWidth(width, { useGestaoTwoColumns: isWideLayout });
+  const screenMaxWidth = getAdministracaoScreenMaxWidth(width);
   const buttonWidth = getAdministracaoMenuButtonWidth(width);
   const menuButtonMetrics = getHomeMenuButtonMetrics(width);
 
@@ -86,9 +86,17 @@ export default function AdministracaoScreen() {
             backgroundColor={MATCHPOINT_COLORS.voltarButtonBackground}
             textColor={MATCHPOINT_COLORS.blue}
             width={buttonWidth}
-            fontSize={Math.max(menuButtonMetrics.fontSize, 18)}
+            fontSize={menuButtonMetrics.fontSize}
             buttonHeight={menuButtonMetrics.buttonHeight}
+            iconContainerWidth={menuButtonMetrics.iconContainerWidth}
             paddingHorizontal={menuButtonMetrics.paddingHorizontal}
+            icon={
+              <Ionicons
+                name="arrow-back"
+                size={menuButtonMetrics.iconSize}
+                color={MATCHPOINT_COLORS.blue}
+              />
+            }
             style={styles.backButton}
             onPress={navigateBack}
           />

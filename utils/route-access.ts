@@ -27,7 +27,6 @@ export const ADMINISTRACAO_CLUBE_ROUTES = new Set([
   'cadastro-atividades',
   'cadastro-horarios',
   'lista-usuarios-gestor',
-  'lista-usuarios-suspensos',
   'lista-reservas-atividade',
   'lista-reservas-periodo',
   'programacao-atividades',

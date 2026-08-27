@@ -11,17 +11,15 @@ import { formatLogadoCreatedAt } from '@/utils/logado-lista-format';
 import { matchesSearchText } from '@/utils/search-text';
 
 export const LISTA_USUARIOS_GESTOR_MESSAGES = {
-  loadError: 'Não foi possível carregar os usuários.',
-  permission: 'Você não tem permissão para administrar este clube.',
-  empty: 'Não foram encontrados usuários.',
+  loadError: 'Não foi possível carregar os moradores.',
+  permission: 'Você não tem permissão para gerir os moradores deste condomínio.',
+  empty: 'Não foram encontrados moradores.',
   approveSuccess: 'Usuário aprovado com sucesso.',
   blockSuccess: 'Usuário bloqueado com sucesso.',
   unblockSuccess: 'Usuário desbloqueado com sucesso.',
   suspensaoAtividadeSuccess: 'Suspensão registrada com sucesso.',
   gestorSuccess: 'Usuário definido como gestor.',
   unsetGestorSuccess: 'Gestor removido com sucesso.',
-  professorSuccess: 'Usuário definido como professor.',
-  unsetProfessorSuccess: 'Professor removido com sucesso.',
   deleteSuccess: 'Usuário excluído com sucesso.',
   photoSuccess: 'Foto atualizada com sucesso.',
   fieldsSuccess: 'Dados atualizados com sucesso.',
@@ -36,10 +34,6 @@ export const LISTA_USUARIOS_GESTOR_MESSAGES = {
   gestorMessage: 'Deseja definir este usuário como gestor do clube?',
   unsetGestorTitle: 'Remover gestor',
   unsetGestorMessage: 'Deseja remover este usuário como gestor do clube?',
-  professorTitle: 'Definir professor',
-  professorMessage: 'Deseja definir este usuário como professor deste local?',
-  unsetProfessorTitle: 'Remover professor',
-  unsetProfessorMessage: 'Deseja remover este usuário como professor deste local?',
   deleteTitle: 'Excluir usuário',
   deleteMessage:
     'Deseja remover este usuário deste local? O cadastro geral na tabela users não será excluído.',
@@ -50,11 +44,9 @@ export const GESTOR_USUARIO_STATUS_FILTER_OPTIONS: Array<{
   label: string;
 }> = [
   { value: 'todos', label: 'Todos' },
-  { value: 'novos', label: 'Novos' },
-  { value: 'gestores', label: 'Gestores' },
-  { value: 'professores', label: 'Professores' },
-  { value: 'bloqueados', label: 'Bloqueados' },
-  { value: 'inativos', label: 'Inativos' },
+  { value: 'pendente', label: 'Pendente' },
+  { value: 'aprovado', label: 'Aprovado' },
+  { value: 'bloqueado', label: 'Bloqueado' },
 ];
 
 export function formatGestorUsuarioUltimaEntrada(
@@ -109,8 +101,10 @@ export function mapUsersLocalToGestorList(
   records: UsersLocalApiRecord[],
   academiasId: number,
 ): GestorUsuarioListItem[] {
-  return records
-    .filter((record) => record.academias_id === academiasId)
+  const scoped = records.filter((record) => record.academias_id === academiasId);
+  const source = scoped.length > 0 ? scoped : records;
+
+  return source
     .filter((record) => !isUsersLocalAdministrador(record))
     .map((record) => {
       const telefoneLimpo = stripPhoneDigits(
@@ -120,53 +114,65 @@ export function mapUsersLocalToGestorList(
           '',
       );
       const socio = (record.socioTitulo ?? record._users?.matricula ?? '').trim();
-      const complemento = (record.complemento ?? record._users?.complemento ?? '').trim();
+      const endereco = (
+        record.endereco ??
+        record.complemento ??
+        record._users?.endereco ??
+        record._users?.complemento ??
+        ''
+      ).trim();
       const email = (record._users?.email ?? '').trim();
+      const rawNome = record.nome.trim() || (record._users?.nome ?? '').trim();
+      const nome =
+        rawNome && !rawNome.toLowerCase().startsWith('http') ? rawNome : 'Sem nome';
 
       return {
         userslocalId: record.id,
         usersId: record.users_id,
         email,
-        nome: record.nome.trim(),
+        nome,
         telefoneConfirmado: record._users?.telefoneConfirmado?.trim() ?? telefoneLimpo,
         telefone: formatBrazilianMobilePhone(telefoneLimpo),
         telefoneLimpo,
         socio,
-        complemento,
+        endereco,
         foto: null,
         ultimoAcesso: record.ultimoAcesso ?? null,
         ultimaEntrada: formatGestorUsuarioUltimaEntrada(record.ultimoAcesso),
         gestor: record._users?.gestor === true || record.gestor === true,
-        professor: record.professor === true,
         administrador:
           record._users?.administrador === true || record.administrador === true,
         aprovado: record.aprovado === true,
         bloqueado: record.bloqueado === true || record._users?.bloqueado === true,
         inativo: record.inativo === true,
       };
-    });
+    })
+    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
+}
+
+export function getGestorMoradorStatus(
+  usuario: Pick<GestorUsuarioListItem, 'aprovado' | 'bloqueado'>,
+): Exclude<GestorUsuarioStatusFilter, 'todos'> {
+  if (usuario.bloqueado) {
+    return 'bloqueado';
+  }
+
+  if (usuario.aprovado) {
+    return 'aprovado';
+  }
+
+  return 'pendente';
 }
 
 export function matchesGestorUsuarioStatusFilter(
-  usuario: GestorUsuarioListItem,
+  usuario: Pick<GestorUsuarioListItem, 'aprovado' | 'bloqueado'>,
   filter: GestorUsuarioStatusFilter,
 ): boolean {
-  switch (filter) {
-    case 'todos':
-      return !usuario.inativo;
-    case 'inativos':
-      return usuario.inativo;
-    case 'novos':
-      return !usuario.inativo && !usuario.aprovado;
-    case 'gestores':
-      return usuario.gestor;
-    case 'professores':
-      return usuario.professor === true;
-    case 'bloqueados':
-      return usuario.bloqueado;
-    default:
-      return true;
+  if (filter === 'todos') {
+    return true;
   }
+
+  return getGestorMoradorStatus(usuario) === filter;
 }
 
 export function applyGestorUsuarioListPatches(
@@ -208,7 +214,7 @@ export function filterGestorUsuarios(
       matchesSearchText(usuario.nome, params.searchQuery) ||
       matchesSearchText(usuario.telefone, params.searchQuery) ||
       matchesSearchText(usuario.telefoneLimpo, params.searchQuery) ||
-      matchesSearchText(usuario.ultimaEntrada, params.searchQuery)
+      matchesSearchText(usuario.endereco, params.searchQuery)
     );
   });
 }

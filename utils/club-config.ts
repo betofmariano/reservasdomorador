@@ -208,6 +208,33 @@ export function isUserGestorOfAcademia(
   return isUserGestorOfAcademiaFromAssociation(user, club.id, associations);
 }
 
+export function getManagedAcademiaIdsForUser(
+  user: User,
+  associations: UserLocalAssociation[] = [],
+): number[] {
+  const userAssociations = associations.filter(
+    (association) => normalizeRecordId(association.users_id) === user.id,
+  );
+
+  const gestorIds = userAssociations
+    .filter((association) => resolvesEffectiveGestor(association))
+    .map((association) => normalizeRecordId(association.academias_id))
+    .filter((id): id is number => id != null && id > 0);
+
+  const uniqueGestorIds = [...new Set(gestorIds)];
+
+  if (uniqueGestorIds.length > 0) {
+    return uniqueGestorIds;
+  }
+
+  if (!isUserGestor(user) || userAssociations.length !== 1) {
+    return [];
+  }
+
+  const onlyId = normalizeRecordId(userAssociations[0]?.academias_id);
+  return onlyId != null && onlyId > 0 ? [onlyId] : [];
+}
+
 export function canManageAcademia(
   user: User,
   academiasId: number,
@@ -217,11 +244,13 @@ export function canManageAcademia(
     return true;
   }
 
-  if (isUserGestorOfAcademiaFromAssociation(user, academiasId, associations)) {
-    return true;
+  const normalizedClubId = normalizeRecordId(academiasId);
+
+  if (normalizedClubId == null) {
+    return false;
   }
 
-  return false;
+  return getManagedAcademiaIdsForUser(user, associations).includes(normalizedClubId);
 }
 
 /** @deprecated Use canManageAcademia */

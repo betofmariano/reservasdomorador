@@ -1,6 +1,6 @@
 import { API_ENDPOINTS, buildGetUserPath, buildUsersItemPath, buildUsersLocalItemPath } from '@/constants/api';
 import { UPDATE_PHOTO_FORM_FIELDS } from '@/constants/user-photo-form';
-import { ApiError, authGetRequest, authMultipartPatchRequest, authPatchRequest } from '@/services/api-client';
+import { ApiError, authGetRequest, authMultipartPatchRequest, authPatchRequest, getRequest } from '@/services/api-client';
 import type { PhotoAsset, UpdatePhotoResponse } from '@/types/user-photo';
 import type { User } from '@/types/user';
 import { normalizeUserFromApi } from '@/utils/normalize-user';
@@ -10,7 +10,7 @@ import {
   resolveUploadFilename,
   resolveUploadMimeType,
 } from '@/utils/photo-upload-form-data';
-import { extractPhotoUrlFromApiPayload } from '@/utils/user-photo';
+import { extractPhotoUrlFromApiPayload, readUsersTableFotoText } from '@/utils/user-photo';
 
 export async function getUserById(usersId: number, authToken: string): Promise<User | null> {
   if (usersId <= 0) {
@@ -40,6 +40,23 @@ export async function getUserPhoto(userslocalId: number, authToken: string): Pro
   const data = await authGetRequest<unknown>(buildUsersLocalItemPath(userslocalId), authToken);
 
   return extractPhotoUrlFromApiPayload(data);
+}
+
+/** GET /users/{users_id} — usa o campo texto `Foto` da tabela users. */
+export async function getUserPhotoByUsersId(
+  usersId: number,
+  authToken?: string | null,
+): Promise<string | null> {
+  if (usersId <= 0) {
+    return null;
+  }
+
+  const path = buildUsersItemPath(usersId);
+  const data = authToken
+    ? await authGetRequest<unknown>(path, authToken)
+    : await getRequest<unknown>(path);
+
+  return readUsersTableFotoText(data);
 }
 
 export async function atualizarUltimaPublicidadeData(

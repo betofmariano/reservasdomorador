@@ -1,4 +1,4 @@
-import { API_ENDPOINTS } from '@/constants/api';
+import { API_ENDPOINTS, buildUsersLocalListPath } from '@/constants/api';
 import { authGetRequest } from '@/services/api-client';
 import type { UsuarioListItem } from '@/types/usuario';
 import { readAcademiaId } from '@/utils/normalize-api-fields';
@@ -11,11 +11,13 @@ type UsersLocalRecords = ReturnType<typeof normalizeUsersLocalApiRecords>;
 
 type UsersLocalRawCache = {
   authToken: string | null;
+  academiasId: number | null;
   raw: unknown;
 };
 
 const usersLocalRawCache: UsersLocalRawCache = {
   authToken: null,
+  academiasId: null,
   raw: null,
 };
 
@@ -35,15 +37,28 @@ function filterRawUsersLocalByAcademia(raw: unknown, academiasId: number): unkno
 
 async function fetchUsersLocalRaw(
   authToken: string,
+  academiasId?: number,
   options?: { force?: boolean },
 ): Promise<unknown> {
-  if (!options?.force && usersLocalRawCache.authToken === authToken && usersLocalRawCache.raw != null) {
+  const scopedAcademiasId = academiasId != null && academiasId > 0 ? academiasId : null;
+  const cacheHit =
+    !options?.force &&
+    usersLocalRawCache.authToken === authToken &&
+    usersLocalRawCache.academiasId === scopedAcademiasId &&
+    usersLocalRawCache.raw != null;
+
+  if (cacheHit) {
     return usersLocalRawCache.raw;
   }
 
-  const data = await authGetRequest<unknown>(API_ENDPOINTS.userslocalSemFoto, authToken);
+  const path =
+    scopedAcademiasId != null
+      ? buildUsersLocalListPath(scopedAcademiasId)
+      : API_ENDPOINTS.userslocalSemFoto;
+  const data = await authGetRequest<unknown>(path, authToken);
 
   usersLocalRawCache.authToken = authToken;
+  usersLocalRawCache.academiasId = scopedAcademiasId;
   usersLocalRawCache.raw = data;
 
   return data;
@@ -51,6 +66,7 @@ async function fetchUsersLocalRaw(
 
 export function invalidateUsuariosLocalCache(): void {
   usersLocalRawCache.authToken = null;
+  usersLocalRawCache.academiasId = null;
   usersLocalRawCache.raw = null;
 }
 
@@ -61,9 +77,11 @@ export async function getUsuariosLocal(
 ): Promise<UsersLocalRecords> {
   console.log('Carregando usuários da academia:', academiasId);
 
-  const raw = await fetchUsersLocalRaw(authToken, options);
-  const filtered = filterRawUsersLocalByAcademia(raw, academiasId);
-  const records = normalizeUsersLocalApiRecords(filtered);
+  const raw = await fetchUsersLocalRaw(authToken, academiasId, options);
+  const items = Array.isArray(raw) ? raw : [];
+  const filtered =
+    items.length > 0 ? filterRawUsersLocalByAcademia(items, academiasId) : items;
+  const records = normalizeUsersLocalApiRecords(filtered.length > 0 ? filtered : raw);
 
   console.log('Resposta da lista de usuários:', records.length);
 
@@ -74,7 +92,7 @@ export async function getAllUsuariosLocal(
   authToken: string,
   options?: { force?: boolean },
 ): Promise<UsersLocalRecords> {
-  const raw = await fetchUsersLocalRaw(authToken, options);
+  const raw = await fetchUsersLocalRaw(authToken, undefined, options);
 
   return normalizeUsersLocalApiRecords(raw);
 }

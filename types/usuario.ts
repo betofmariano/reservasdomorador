@@ -12,14 +12,19 @@ export type UsersLocalApiRecord = {
   ultimoAcesso?: number | null;
   telefoneLimpo?: string | null;
   socioTitulo?: string | null;
+  endereco?: string | null;
+  /** @deprecated Use `endereco`. */
   complemento?: string | null;
   _users?: {
+    nome?: string | null;
     Foto?: string | null;
     foto?: string | null;
     telefoneConfirmado?: string | null;
     telefoneLimpo?: string | null;
     email?: string | null;
     matricula?: string | null;
+    endereco?: string | null;
+    /** @deprecated Use `endereco`. */
     complemento?: string | null;
     gestor?: boolean;
     professor?: boolean;
@@ -36,13 +41,19 @@ export type UsuarioListItem = {
   telefoneLimpo: string;
 };
 
-export type GestorUsuarioStatusFilter =
-  | 'todos'
-  | 'inativos'
-  | 'novos'
-  | 'gestores'
-  | 'professores'
-  | 'bloqueados';
+export type GestorUsuarioStatusFilter = 'todos' | 'pendente' | 'aprovado' | 'bloqueado';
+
+export type GestorMoradorItem = {
+  userslocalId: number;
+  usersId: number;
+  nome: string;
+  telefone: string;
+  telefoneLimpo: string;
+  endereco: string;
+  foto: string | null;
+  aprovado: boolean;
+  bloqueado: boolean;
+};
 
 export type GestorUsuarioSortField = 'nome' | 'ultimaEntrada';
 export type GestorUsuarioSortDirection = 'asc' | 'desc';
@@ -56,12 +67,11 @@ export type GestorUsuarioListItem = {
   telefoneLimpo: string;
   telefoneConfirmado: string;
   socio: string;
-  complemento: string;
+  endereco: string;
   foto: string | null;
   ultimoAcesso: number | null;
   ultimaEntrada: string;
   gestor: boolean;
-  professor: boolean;
   administrador: boolean;
   aprovado: boolean;
   bloqueado: boolean;
@@ -76,7 +86,7 @@ export type UpdateUsersLocalPayload = {
   nome?: string;
   ultimoAcesso?: number;
   socioTitulo?: string;
-  complemento?: string;
+  endereco?: string;
 };
 
 export type UpdateUsersPayload = {

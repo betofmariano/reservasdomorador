@@ -1,22 +1,17 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
-import { CriarMapaDiarioPanel } from '@/components/criar-mapa-diario-panel';
 import { MenuActionButton } from '@/components/menu-action-button';
 import { APP_OCULTAR_PATROCINADORES } from '@/constants/app-branding';
 import { MATCHPOINT_COLORS } from '@/constants/theme';
 import { useUserContext } from '@/contexts/user-context';
-import { useAdministracaoMenuAccess, type AdministracaoMenuAccess } from '@/hooks/use-administracao-menu-access';
+import type { AdministracaoMenuAccess } from '@/hooks/use-administracao-menu-access';
 import type { User } from '@/types/user';
 import { isUserAdministrador } from '@/utils/club-config';
 import { isGestorMenuRouteEnabled } from '@/utils/academia-permissoes-gestor';
-import {
-  ADMINISTRACAO_MENU_COLUMN_GAP,
-  getAdministracaoMenuButtonWidth,
-  getAdministracaoTwoColumnSectionWidth,
-  isAdministracaoWideLayout,
-} from '@/utils/administracao-menu-layout';
+import { getAdministracaoMenuButtonWidth } from '@/utils/administracao-menu-layout';
 import { getHomeMenuButtonMetrics } from '@/utils/home-menu-button';
 
 type AdministracaoMenuProps = {
@@ -27,16 +22,17 @@ type AdministracaoMenuProps = {
 type AdminMenuItem = {
   label: string;
   route: string;
+  icon: keyof typeof Ionicons.glyphMap;
 };
 
 const BUTTON_GAP = 18;
 
 const ADMIN_ONLY_ITEMS: AdminMenuItem[] = [
-  { label: 'Lista de Acessos', route: '/lista-acessos' },
-  { label: 'Lista de Logins', route: '/lista-logins' },
-  { label: 'Lista de Logados', route: '/lista-logados' },
-  { label: 'Publicidade', route: '/resumo-publicidade' },
-  { label: 'Aprovar Publicidade', route: '/aprovar-publicidade' },
+  { label: 'Lista de Acessos', route: '/lista-acessos', icon: 'enter-outline' },
+  { label: 'Lista de Logins', route: '/lista-logins', icon: 'key-outline' },
+  { label: 'Lista de Logados', route: '/lista-logados', icon: 'people-circle-outline' },
+  { label: 'Publicidade', route: '/resumo-publicidade', icon: 'megaphone-outline' },
+  { label: 'Aprovar Publicidade', route: '/aprovar-publicidade', icon: 'checkmark-circle-outline' },
 ].filter(
   (item) =>
     !APP_OCULTAR_PATROCINADORES ||
@@ -44,40 +40,12 @@ const ADMIN_ONLY_ITEMS: AdminMenuItem[] = [
 );
 
 const CLUB_ADMIN_ITEMS: AdminMenuItem[] = [
-  { label: 'Lista de Usuários', route: '/lista-usuarios-gestor' },
-  { label: 'Lista de Usuários Suspensos', route: '/lista-usuarios-suspensos' },
-  { label: 'Lista de Presença', route: '/lista-presenca' },
-  { label: 'Lista de Reservas', route: '/lista-reservas' },
-  { label: 'Lista de Reservas por Atividade', route: '/lista-reservas-atividade' },
-  { label: 'Resumo de Reservas por Período', route: '/lista-reservas-periodo' },
-  { label: 'Programação de Atividades', route: '/programacao-atividades' },
-  { label: 'Lista de Espera', route: '/relatorio-lista-espera' },
-  { label: 'Mapa de Frequência', route: '/mapa-frequencia' },
-  { label: 'Configuração do Local', route: '/configuracao-local' },
-  { label: 'Cadastro de Atividades', route: '/cadastro-atividades' },
-  { label: 'Cadastro de Horários', route: '/cadastro-horarios' },
+  { label: 'Lista de Usuários', route: '/lista-usuarios-gestor', icon: 'people-outline' },
+  { label: 'Lista de Reservas', route: '/lista-reservas', icon: 'calendar-outline' },
+  { label: 'Configuração do Local', route: '/configuracao-local', icon: 'business-outline' },
+  { label: 'Cadastro de Atividades', route: '/cadastro-atividades', icon: 'tennisball-outline' },
+  { label: 'Cadastro de Horários', route: '/cadastro-horarios', icon: 'time-outline' },
 ];
-
-const GESTAO_COLUMN_1_ROUTES = [
-  '/lista-usuarios-gestor',
-  '/lista-usuarios-suspensos',
-  '/cadastro-atividades',
-  '/cadastro-horarios',
-  '/programacao-atividades',
-] as const;
-
-function splitGestaoMenuItems(items: AdminMenuItem[]) {
-  const itemsByRoute = new Map(items.map((item) => [item.route, item]));
-  const column1Routes = new Set<string>(GESTAO_COLUMN_1_ROUTES);
-
-  const column1 = GESTAO_COLUMN_1_ROUTES.map((route) => itemsByRoute.get(route)).filter(
-    (item): item is AdminMenuItem => item != null,
-  );
-
-  const column2 = items.filter((item) => !column1Routes.has(item.route));
-
-  return { column1, column2 };
-}
 
 export function AdministracaoMenu({ user, access }: AdministracaoMenuProps) {
   const router = useRouter();
@@ -85,11 +53,8 @@ export function AdministracaoMenu({ user, access }: AdministracaoMenuProps) {
   const { currentAcademia } = useUserContext();
   const { isClubGestor } = access;
   const isAdministrador = isUserAdministrador(user);
-  const isWideLayout = isAdministracaoWideLayout(width);
   const menuButtonMetrics = getHomeMenuButtonMetrics(width);
-  const standardButtonWidth = getAdministracaoMenuButtonWidth(width);
-
-  const [showCriarMapaDiarioPanel, setShowCriarMapaDiarioPanel] = useState(false);
+  const menuButtonWidth = getAdministracaoMenuButtonWidth(width);
 
   const gestaoItems = useMemo(
     () =>
@@ -103,34 +68,26 @@ export function AdministracaoMenu({ user, access }: AdministracaoMenuProps) {
     [currentAcademia, isAdministrador],
   );
 
-  const { column1: gestaoColumn1, column2: gestaoColumn2 } = useMemo(
-    () => splitGestaoMenuItems(gestaoItems),
-    [gestaoItems],
-  );
-
-  const useGestaoTwoColumns = gestaoColumn1.length > 0 && gestaoColumn2.length > 0 && isWideLayout;
-  const gestaoSectionWidth = useGestaoTwoColumns
-    ? getAdministracaoTwoColumnSectionWidth(width)
-    : standardButtonWidth;
-  const menuButtonWidth = standardButtonWidth;
-
-  function renderMenuButton(
-    label: string,
-    onPress: () => void,
-    buttonWidth: number,
-    options?: { isFirst?: boolean },
-  ) {
+  function renderMenuButton(item: AdminMenuItem, options?: { isFirst?: boolean }) {
     return (
       <MenuActionButton
-        label={label}
+        label={item.label}
         backgroundColor={MATCHPOINT_COLORS.blue}
         textColor={MATCHPOINT_COLORS.white}
-        width={buttonWidth}
+        width={menuButtonWidth}
         fontSize={menuButtonMetrics.fontSize}
         buttonHeight={menuButtonMetrics.buttonHeight}
+        iconContainerWidth={menuButtonMetrics.iconContainerWidth}
         paddingHorizontal={menuButtonMetrics.paddingHorizontal}
+        icon={
+          <Ionicons
+            name={item.icon}
+            size={menuButtonMetrics.iconSize}
+            color={MATCHPOINT_COLORS.white}
+          />
+        }
         style={options?.isFirst ? undefined : { marginTop: BUTTON_GAP }}
-        onPress={onPress}
+        onPress={() => handleNavigate(item.route)}
       />
     );
   }
@@ -139,14 +96,12 @@ export function AdministracaoMenu({ user, access }: AdministracaoMenuProps) {
     router.push(route as never);
   }
 
-  function renderMenuColumn(items: AdminMenuItem[], buttonWidth: number) {
+  function renderMenuColumn(items: AdminMenuItem[]) {
     return (
-      <View style={[styles.menuColumn, { width: buttonWidth }]}>
+      <View style={[styles.menuColumn, { width: menuButtonWidth }]}>
         {items.map((item, index) => (
           <View key={item.route} style={styles.menuButtonSlot}>
-            {renderMenuButton(item.label, () => handleNavigate(item.route), buttonWidth, {
-              isFirst: index === 0,
-            })}
+            {renderMenuButton(item, { isFirst: index === 0 })}
           </View>
         ))}
       </View>
@@ -159,17 +114,9 @@ export function AdministracaoMenu({ user, access }: AdministracaoMenuProps) {
     }
 
     return (
-      <View style={[styles.section, { maxWidth: gestaoSectionWidth }]}>
+      <View style={[styles.section, { maxWidth: menuButtonWidth }]}>
         <Text style={styles.sectionTitle}>Gestão</Text>
-
-        {useGestaoTwoColumns ? (
-          <View style={styles.columnsRow}>
-            {renderMenuColumn(gestaoColumn1, menuButtonWidth)}
-            {renderMenuColumn(gestaoColumn2, menuButtonWidth)}
-          </View>
-        ) : (
-          renderMenuColumn(gestaoItems, menuButtonWidth)
-        )}
+        {renderMenuColumn(gestaoItems)}
       </View>
     );
   }
@@ -192,22 +139,9 @@ export function AdministracaoMenu({ user, access }: AdministracaoMenuProps) {
           <Text style={styles.sectionTitle}>Sistema</Text>
           {ADMIN_ONLY_ITEMS.map((item, index) => (
             <View key={item.route} style={styles.menuButtonSlot}>
-              {renderMenuButton(item.label, () => handleNavigate(item.route), menuButtonWidth, {
-                isFirst: index === 0,
-              })}
+              {renderMenuButton(item, { isFirst: index === 0 })}
             </View>
           ))}
-          {!showCriarMapaDiarioPanel ? (
-            renderMenuButton(
-              'Criar Mapa Diario',
-              () => setShowCriarMapaDiarioPanel(true),
-              menuButtonWidth,
-            )
-          ) : (
-            <View style={{ marginTop: BUTTON_GAP, width: menuButtonWidth }}>
-              <CriarMapaDiarioPanel user={user} enabled={showCriarMapaDiarioPanel} />
-            </View>
-          )}
         </View>
       ) : null}
 
@@ -225,13 +159,6 @@ const styles = StyleSheet.create({
   section: {
     width: '100%',
     alignItems: 'center',
-  },
-  columnsRow: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-    gap: ADMINISTRACAO_MENU_COLUMN_GAP,
   },
   menuColumn: {
     alignItems: 'center',

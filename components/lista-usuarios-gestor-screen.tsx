@@ -12,35 +12,32 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
-import { AcademiaSelector } from '@/components/academia-selector';
 import { AdminTableScrollContainer } from '@/components/admin-table-scroll-container';
 import { ExcluirCadastroModal } from '@/components/excluir-cadastro-modal';
 import { GestorUsuarioListItemRow } from '@/components/gestor-usuario-list-item';
 import { GestorUsuarioStatusFilter } from '@/components/gestor-usuario-status-filter';
 import { ScreenHeader, ScreenHeaderDivider } from '@/components/screen-header';
 import { UsuarioContatoModal } from '@/components/usuario-contato-modal';
-import { UsuarioSuspensaoAtividadeModal } from '@/components/usuario-suspensao-atividade-modal';
-import { UsuarioSuspensaoTipoModal } from '@/components/usuario-suspensao-tipo-modal';
 import { WebScreenContainer } from '@/components/web-screen-container';
-import { WEB_MAX_WIDE_CONTENT_WIDTH } from '@/constants/web-layout';
+import { WEB_MAX_CONTENT_WIDTH, WEB_MAX_WIDE_CONTENT_WIDTH } from '@/constants/web-layout';
 import { useAppToast } from '@/contexts/app-toast-context';
 import { useAuth } from '@/contexts/auth-context';
-import { useAcademiaAdminSelection } from '@/hooks/use-academia-admin-selection';
-import { getAcademiaById } from '@/services/academias-service';
+import { useUserContext } from '@/contexts/user-context';
 import {
   LISTA_USUARIOS_GESTOR_MESSAGES,
   useListaUsuariosGestorScreen,
 } from '@/hooks/use-lista-usuarios-gestor-screen';
 import type { GestorUsuarioListItem } from '@/types/usuario';
-import type { Academia } from '@/types/academia';
-import { academiaExigeComplemento } from '@/utils/academia-form';
 import { CLUB_ADMIN_MESSAGES } from '@/utils/club-config';
 import {
-  GESTOR_USUARIOS_COMPLEMENTO_COLUMN_WIDTH,
+  GESTOR_USUARIOS_ACTIONS_COLUMN_WIDTH,
+  GESTOR_USUARIOS_ENDERECO_COLUMN_WIDTH,
   GESTOR_USUARIOS_FLAG_COLUMN_WIDTH,
   GESTOR_USUARIOS_NOME_COLUMN_WIDTH,
-  GESTOR_USUARIOS_SOCIO_COLUMN_WIDTH,
-  GESTOR_USUARIOS_TABLE_CENTER_MIN_WIDTH,
+  GESTOR_USUARIOS_TABLE_COLUMN_GAP,
+  GESTOR_USUARIOS_TABLE_HORIZONTAL_PADDING,
+  GESTOR_USUARIOS_TELEFONE_COLUMN_WIDTH,
+  GESTOR_USUARIOS_ULTIMA_ENTRADA_COLUMN_WIDTH,
   getGestorUsuariosTableWidth,
 } from '@/utils/gestor-usuario-table-layout';
 
@@ -54,110 +51,53 @@ const COLORS = {
   highlight: '#FFF4D6',
 };
 
-const TABLE_HEADER_STYLE = {
-  flexDirection: 'row' as const,
-  alignItems: 'center' as const,
-  gap: 8,
-  paddingVertical: 10,
-  paddingHorizontal: 8,
-  backgroundColor: COLORS.highlight,
-  borderBottomWidth: 1,
-  borderBottomColor: COLORS.border,
-};
+const TABLE_MIN_WIDTH = getGestorUsuariosTableWidth({
+  showEnderecoColumn: true,
+});
+const SCREEN_MAX_WIDTH = Math.max(WEB_MAX_WIDE_CONTENT_WIDTH, TABLE_MIN_WIDTH);
 
 type PendingAction = {
-  type:
-    | 'approve'
-    | 'gestor'
-    | 'unset-gestor'
-    | 'professor'
-    | 'unset-professor'
-    | 'delete';
+  type: 'approve' | 'gestor' | 'unset-gestor' | 'delete';
   usuario: GestorUsuarioListItem;
 };
 
 export function ListaUsuariosGestorScreen() {
   const router = useRouter();
-
   const { showToast } = useAppToast();
   const { user, authToken, isLoading: isAuthLoading, signOut } = useAuth();
+  const {
+    currentAcademia,
+    permissions,
+    isLoading: isContextLoading,
+  } = useUserContext();
 
-  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
-  const [usuarioContato, setUsuarioContato] = useState<GestorUsuarioListItem | null>(null);
-  const [isContatoModalVisible, setIsContatoModalVisible] = useState(false);
-  const [usuarioSuspensao, setUsuarioSuspensao] = useState<GestorUsuarioListItem | null>(null);
-  const [isSuspensaoTipoVisible, setIsSuspensaoTipoVisible] = useState(false);
-  const [isSuspensaoAtividadeVisible, setIsSuspensaoAtividadeVisible] = useState(false);
-  const [suspensaoError, setSuspensaoError] = useState<string | null>(null);
+  const canAccess = permissions.gestor || permissions.administrador;
+  const academiasId = currentAcademia?.id ?? null;
 
   const handleUnauthorized = useCallback(async () => {
     await signOut();
     router.replace('/login');
   }, [router, signOut]);
 
-  const {
-    availableAcademias,
-    selectedAcademiaId,
-    isLoadingAcademias,
-    academiasLoadError,
-    academiaLoadError,
-    isAdministrador,
-    canManageSelectedAcademia,
-    showAcademiaSelector,
-    setSelectedAcademiaId,
-    fetchAvailableAcademias,
-  } = useAcademiaAdminSelection({
-    user,
-    authToken,
-    isAuthLoading,
-    onUnauthorized: handleUnauthorized,
-  });
+  const [moradorParaBloquear, setMoradorParaBloquear] = useState<GestorUsuarioListItem | null>(null);
+  const [blockError, setBlockError] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [usuarioContato, setUsuarioContato] = useState<GestorUsuarioListItem | null>(null);
 
-  const selectedAcademia = useMemo(
-    () => availableAcademias.find((academia) => academia.id === selectedAcademiaId) ?? null,
-    [availableAcademias, selectedAcademiaId],
+  const contatoUsuario = useMemo(
+    () =>
+      usuarioContato
+        ? {
+            id: usuarioContato.usersId,
+            userslocalId: usuarioContato.userslocalId,
+            nome: usuarioContato.nome,
+            foto: null,
+            telefoneLimpo: usuarioContato.telefoneLimpo,
+          }
+        : null,
+    [usuarioContato],
   );
-  const [resolvedAcademia, setResolvedAcademia] = useState<Academia | null>(selectedAcademia);
-
-  useEffect(() => {
-    if (!selectedAcademiaId || !authToken) {
-      setResolvedAcademia(selectedAcademia);
-      return;
-    }
-
-    let cancelled = false;
-
-    void getAcademiaById(selectedAcademiaId, authToken)
-      .then((academia) => {
-        if (!cancelled) {
-          setResolvedAcademia(academia);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setResolvedAcademia(selectedAcademia);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [authToken, selectedAcademia, selectedAcademiaId]);
-
-  const academiaConfig = resolvedAcademia ?? selectedAcademia;
-  const showSocioColumn = academiaConfig?.tituloSocio === true;
-  const showComplemento = academiaExigeComplemento(academiaConfig);
-  const showComplementoColumn = showComplemento;
-  const showComplementoField = showComplemento;
-  const showSocioTituloField = academiaConfig?.tituloSocio === true;
-  const tableMinWidth = getGestorUsuariosTableWidth({
-    showSocioColumn,
-    showComplementoColumn,
-    showAdministradorColumn: isAdministrador,
-  });
-
-  const isLoadingAcademiaContext = isLoadingAcademias;
 
   const {
     usuarios,
@@ -167,107 +107,75 @@ export function ListaUsuariosGestorScreen() {
     loadError,
     searchQuery,
     statusFilter,
-    sortField,
-    sortDirection,
     isActionRunning,
     setSearchQuery,
     setStatusFilter,
-    handleNomeSortPress,
-    handleUltimaEntradaSortPress,
     fetchUsuarios,
     approveUsuario,
-    toggleBlockUsuario,
-    blockUsuarioTotal,
-    suspendUsuarioAtividade,
+    setBloqueioUsuario,
     setGestorUsuario,
-    setProfessorUsuario,
     deleteUsuario,
-    updateUsuarioFoto,
-    updateUsuarioExtraFields,
   } = useListaUsuariosGestorScreen({
-    user,
     authToken,
+    academiasId,
     isAuthLoading,
-    isAdministrador,
-    selectedClubId: selectedAcademiaId,
-    canManageSelectedClub: canManageSelectedAcademia,
-    isLoadingClubContext: isLoadingAcademiaContext,
+    canAccess,
+    isContextLoading,
     onUnauthorized: handleUnauthorized,
   });
 
   useEffect(() => {
-    if (isAuthLoading || !user || isLoadingAcademias) {
+    if (isAuthLoading || isContextLoading || !user) {
       return;
     }
 
-    if (!isAdministrador && availableAcademias.length === 0 && !academiasLoadError) {
+    if (!canAccess) {
       showToast(CLUB_ADMIN_MESSAGES.permission, { variant: 'error' });
       router.replace('/');
     }
-  }, [
-    availableAcademias.length,
-    academiasLoadError,
-    isAdministrador,
-    isAuthLoading,
-    isLoadingAcademias,
-    router,
-    showToast,
-    user,
-  ]);
+  }, [canAccess, isAuthLoading, isContextLoading, router, showToast, user]);
 
-  function handleContactPress(usuario: GestorUsuarioListItem) {
-    setUsuarioContato(usuario);
-    setIsContatoModalVisible(true);
-  }
-
-  function handleCloseContatoModal() {
-    setIsContatoModalVisible(false);
-    setUsuarioContato(null);
-  }
-
-  function handleUsuarioPhotoUpdated(photoUrl: string | null) {
-    if (!usuarioContato) {
-      return;
-    }
-
-    const updatedUsuario = { ...usuarioContato, foto: photoUrl };
-    setUsuarioContato(updatedUsuario);
-    updateUsuarioFoto(usuarioContato.userslocalId, photoUrl);
-  }
-
-  function handleUsuarioExtraFieldsUpdated(
-    values: { complemento?: string; socioTitulo?: string },
-  ): Promise<string | null> {
-    if (!usuarioContato) {
-      return Promise.resolve(LISTA_USUARIOS_GESTOR_MESSAGES.actionError);
-    }
-
-    return updateUsuarioExtraFields(usuarioContato, values).then((error) => {
-      if (!error) {
-        setUsuarioContato((current) =>
-          current
-            ? {
-                ...current,
-                complemento: values.complemento ?? current.complemento,
-                socio: values.socioTitulo ?? current.socio,
-              }
-            : current,
-        );
-      }
-
-      return error;
-    });
-  }
-
-  function closeSuspensaoModals() {
+  function openAction(type: PendingAction['type'], usuario: GestorUsuarioListItem) {
     if (isActionRunning) {
       return;
     }
 
-    setIsSuspensaoTipoVisible(false);
-    setIsSuspensaoAtividadeVisible(false);
-    setUsuarioSuspensao(null);
-    setSuspensaoError(null);
+    setActionError(null);
+    setPendingAction({ type, usuario });
+  }
+
+  function closeAction() {
+    if (isActionRunning) {
+      return;
+    }
+
+    setPendingAction(null);
+    setActionError(null);
+  }
+
+  async function confirmPendingAction() {
+    if (!pendingAction) {
+      return;
+    }
+
+    const { type, usuario } = pendingAction;
+    let result;
+
+    if (type === 'approve') {
+      result = await approveUsuario(usuario);
+    } else if (type === 'gestor' || type === 'unset-gestor') {
+      result = await setGestorUsuario(usuario, type === 'gestor');
+    } else {
+      result = await deleteUsuario(usuario);
+    }
+
+    if (!result.ok) {
+      setActionError(result.mensagem);
+      return;
+    }
+
+    setPendingAction(null);
+    showToast(result.mensagem, { variant: 'success' });
   }
 
   async function handleBlockPress(usuario: GestorUsuarioListItem) {
@@ -276,194 +184,71 @@ export function ListaUsuariosGestorScreen() {
     }
 
     if (usuario.bloqueado) {
-      const error = await toggleBlockUsuario(usuario);
-
-      if (error) {
-        showToast(error, { variant: 'error' });
-        return;
-      }
-
-      showToast(LISTA_USUARIOS_GESTOR_MESSAGES.unblockSuccess, { variant: 'success' });
+      const result = await setBloqueioUsuario(usuario, false);
+      showToast(result.mensagem, { variant: result.ok ? 'success' : 'error' });
       return;
     }
 
-    setSuspensaoError(null);
-    setUsuarioSuspensao(usuario);
-    setIsSuspensaoTipoVisible(true);
+    setBlockError(null);
+    setMoradorParaBloquear(usuario);
   }
 
-  async function handleSuspensaoTotal() {
-    if (!usuarioSuspensao) {
+  async function confirmBlock() {
+    if (!moradorParaBloquear) {
       return;
     }
 
-    setSuspensaoError(null);
+    setBlockError(null);
+    const result = await setBloqueioUsuario(moradorParaBloquear, true);
 
-    const error = await blockUsuarioTotal(usuarioSuspensao);
-
-    if (error) {
-      showToast(error, { variant: 'error' });
+    if (!result.ok) {
+      setBlockError(result.mensagem);
       return;
     }
 
-    closeSuspensaoModals();
-    showToast(LISTA_USUARIOS_GESTOR_MESSAGES.blockSuccess, { variant: 'success' });
+    setMoradorParaBloquear(null);
+    showToast(result.mensagem, { variant: 'success' });
   }
 
-  function handleSuspensaoAtividadeSelect() {
-    setSuspensaoError(null);
-    setIsSuspensaoTipoVisible(false);
-    setIsSuspensaoAtividadeVisible(true);
-  }
-
-  async function handleSuspensaoAtividadeConfirm(params: {
-    atividadesId: number;
-    dias: number;
-  }) {
-    if (!usuarioSuspensao) {
-      return;
-    }
-
-    setSuspensaoError(null);
-
-    const error = await suspendUsuarioAtividade(
-      usuarioSuspensao,
-      params.atividadesId,
-      params.dias,
-    );
-
-    if (error) {
-      setSuspensaoError(error);
-      return;
-    }
-
-    closeSuspensaoModals();
-    showToast(LISTA_USUARIOS_GESTOR_MESSAGES.suspensaoAtividadeSuccess, { variant: 'success' });
-  }
-
-  function openAction(type: PendingAction['type'], usuario: GestorUsuarioListItem) {
-    if (isActionRunning) {
-      return;
-    }
-
-    if (type === 'delete' && !canManageSelectedAcademia) {
-      return;
-    }
-
-    setActionError(null);
-    setPendingAction({ type, usuario });
-  }
-
-  function closeActionModal() {
-    if (isActionRunning) {
-      return;
-    }
-
-    setPendingAction(null);
-    setActionError(null);
-  }
-
-  async function handleConfirmAction() {
-    if (!pendingAction) {
-      return;
-    }
-
-    setActionError(null);
-
-    let error: string | null = null;
-    let successMessage = '';
-
-    switch (pendingAction.type) {
-      case 'approve':
-        error = await approveUsuario(pendingAction.usuario);
-        successMessage = LISTA_USUARIOS_GESTOR_MESSAGES.approveSuccess;
-        break;
-      case 'gestor':
-        error = await setGestorUsuario(pendingAction.usuario, true);
-        successMessage = LISTA_USUARIOS_GESTOR_MESSAGES.gestorSuccess;
-        break;
-      case 'unset-gestor':
-        error = await setGestorUsuario(pendingAction.usuario, false);
-        successMessage = LISTA_USUARIOS_GESTOR_MESSAGES.unsetGestorSuccess;
-        break;
-      case 'professor':
-        error = await setProfessorUsuario(pendingAction.usuario, true);
-        successMessage = LISTA_USUARIOS_GESTOR_MESSAGES.professorSuccess;
-        break;
-      case 'unset-professor':
-        error = await setProfessorUsuario(pendingAction.usuario, false);
-        successMessage = LISTA_USUARIOS_GESTOR_MESSAGES.unsetProfessorSuccess;
-        break;
-      case 'delete':
-        error = await deleteUsuario(pendingAction.usuario);
-        successMessage = LISTA_USUARIOS_GESTOR_MESSAGES.deleteSuccess;
-        break;
-    }
-
-    if (error) {
-      setActionError(error);
-      return;
-    }
-
-    setPendingAction(null);
-    showToast(successMessage, { variant: 'success' });
-  }
-
-  function getActionModalCopy(action: PendingAction | null) {
-    if (!action) {
-      return { title: '', message: '', confirmLabel: 'Confirmar', confirmDestructive: false };
-    }
-
-    switch (action.type) {
-      case 'approve':
-        return {
+  const pendingCopy = pendingAction
+    ? pendingAction.type === 'approve'
+      ? {
           title: LISTA_USUARIOS_GESTOR_MESSAGES.approveTitle,
           message: LISTA_USUARIOS_GESTOR_MESSAGES.approveMessage,
           confirmLabel: 'Aprovar',
           confirmDestructive: false,
-        };
-      case 'gestor':
-        return {
-          title: LISTA_USUARIOS_GESTOR_MESSAGES.gestorTitle,
-          message: LISTA_USUARIOS_GESTOR_MESSAGES.gestorMessage,
-          confirmLabel: 'Definir gestor',
-          confirmDestructive: false,
-        };
-      case 'unset-gestor':
-        return {
-          title: LISTA_USUARIOS_GESTOR_MESSAGES.unsetGestorTitle,
-          message: LISTA_USUARIOS_GESTOR_MESSAGES.unsetGestorMessage,
-          confirmLabel: 'Remover gestor',
-          confirmDestructive: false,
-        };
-      case 'professor':
-        return {
-          title: LISTA_USUARIOS_GESTOR_MESSAGES.professorTitle,
-          message: LISTA_USUARIOS_GESTOR_MESSAGES.professorMessage,
-          confirmLabel: 'Definir professor',
-          confirmDestructive: false,
-        };
-      case 'unset-professor':
-        return {
-          title: LISTA_USUARIOS_GESTOR_MESSAGES.unsetProfessorTitle,
-          message: LISTA_USUARIOS_GESTOR_MESSAGES.unsetProfessorMessage,
-          confirmLabel: 'Remover professor',
-          confirmDestructive: false,
-        };
-      case 'delete':
-        return {
-          title: LISTA_USUARIOS_GESTOR_MESSAGES.deleteTitle,
-          message: LISTA_USUARIOS_GESTOR_MESSAGES.deleteMessage,
-          confirmLabel: 'Excluir',
-          confirmDestructive: true,
-        };
-    }
-  }
+        }
+      : pendingAction.type === 'gestor'
+        ? {
+            title: LISTA_USUARIOS_GESTOR_MESSAGES.gestorTitle,
+            message: LISTA_USUARIOS_GESTOR_MESSAGES.gestorMessage,
+            confirmLabel: 'Confirmar',
+            confirmDestructive: false,
+          }
+        : pendingAction.type === 'unset-gestor'
+          ? {
+              title: LISTA_USUARIOS_GESTOR_MESSAGES.unsetGestorTitle,
+              message: LISTA_USUARIOS_GESTOR_MESSAGES.unsetGestorMessage,
+              confirmLabel: 'Remover',
+              confirmDestructive: true,
+            }
+          : {
+              title: LISTA_USUARIOS_GESTOR_MESSAGES.deleteTitle,
+              message: LISTA_USUARIOS_GESTOR_MESSAGES.deleteMessage,
+              confirmLabel: 'Excluir',
+              confirmDestructive: true,
+            }
+    : {
+        title: '',
+        message: '',
+        confirmLabel: 'Confirmar',
+        confirmDestructive: false,
+      };
 
-  if (isAuthLoading || !user) {
+  if (isAuthLoading || !user || isContextLoading) {
     return (
       <SafeAreaView style={styles.loadingSafeArea} edges={['top', 'left', 'right']}>
-        <WebScreenContainer maxWidth={WEB_MAX_WIDE_CONTENT_WIDTH}>
+        <WebScreenContainer maxWidth={SCREEN_MAX_WIDTH}>
           <View style={styles.centerContent}>
             <ActivityIndicator size="large" color={COLORS.blue} />
           </View>
@@ -472,213 +257,41 @@ export function ListaUsuariosGestorScreen() {
     );
   }
 
-  const showList =
-    !isLoadingAcademiaContext &&
-    canManageSelectedAcademia &&
-    !isLoading &&
-    !loadError &&
-    usuarios.length > 0;
-
-  const modalCopy = getActionModalCopy(pendingAction);
-
-  const nomeHeaderLabel = `Nome${
-    isAdministrador && sortField === 'nome' ? (sortDirection === 'asc' ? ' ↑' : ' ↓') : ''
-  }`;
-
-  const ultimaEntradaHeaderLabel = `Última Entrada${
-    isAdministrador && sortField === 'ultimaEntrada'
-      ? sortDirection === 'desc'
-        ? ' ↓'
-        : ' ↑'
-      : ''
-  }`;
+  const currentUserId = user.id;
+  const showList = canAccess && !isLoading && !loadError && usuarios.length > 0;
 
   const tableHeader = (
-    <View style={[styles.tableHeader, { width: tableMinWidth, minWidth: tableMinWidth }]}>
-      {isAdministrador ? (
-        <Pressable
-          style={[styles.colNomeHeader, { width: GESTOR_USUARIOS_NOME_COLUMN_WIDTH }]}
-          onPress={handleNomeSortPress}
-          hitSlop={8}>
-          <Text
-            style={[
-              styles.tableHeaderText,
-              sortField === 'nome' && styles.tableHeaderTextActive,
-            ]}>
-            {nomeHeaderLabel}
-          </Text>
-        </Pressable>
-      ) : (
-        <Text
-          style={[
-            styles.tableHeaderText,
-            styles.colNome,
-            { width: GESTOR_USUARIOS_NOME_COLUMN_WIDTH },
-          ]}>
-          Nome
-        </Text>
-      )}
-      <Text style={[styles.tableHeaderText, styles.colTelefone]}>Telefone</Text>
-      {showSocioColumn ? (
-        <Text
-          style={[
-            styles.tableHeaderText,
-            styles.colSocio,
-            { width: GESTOR_USUARIOS_SOCIO_COLUMN_WIDTH },
-          ]}>
-          Sócio
-        </Text>
-      ) : null}
-      {showComplementoColumn ? (
-        <Text
-          style={[
-            styles.tableHeaderText,
-            styles.colComplemento,
-            { width: GESTOR_USUARIOS_COMPLEMENTO_COLUMN_WIDTH },
-          ]}>
-          Complemento
-        </Text>
-      ) : null}
+    <View style={[styles.tableHeader, { width: TABLE_MIN_WIDTH, minWidth: TABLE_MIN_WIDTH }]}>
       <Text
         style={[
           styles.tableHeaderText,
-          styles.colFlag,
-          { width: GESTOR_USUARIOS_FLAG_COLUMN_WIDTH },
+          styles.colNome,
+          { width: GESTOR_USUARIOS_NOME_COLUMN_WIDTH },
         ]}>
-        Prof
+        Nome
       </Text>
-      {isAdministrador ? (
-        <Text
-          style={[
-            styles.tableHeaderText,
-            styles.colFlag,
-            { width: GESTOR_USUARIOS_FLAG_COLUMN_WIDTH },
-          ]}>
-          Adm
-        </Text>
-      ) : null}
+      <Text style={[styles.tableHeaderText, styles.colTelefone]}>Telefone</Text>
+      <Text
+        style={[
+          styles.tableHeaderText,
+          styles.colEndereco,
+          { width: GESTOR_USUARIOS_ENDERECO_COLUMN_WIDTH },
+        ]}>
+        Endereço
+      </Text>
       <Text style={[styles.tableHeaderText, styles.colFlag]}>Gestor</Text>
       <Text style={[styles.tableHeaderText, styles.colFlag]}>Aprov</Text>
       <Text style={[styles.tableHeaderText, styles.colFlag]}>Bloq</Text>
-      <Text
-        style={[
-          styles.tableHeaderText,
-          styles.colActions,
-          !isAdministrador && styles.colActionsCompact,
-        ]}>
-        Ações
-      </Text>
-      {isAdministrador ? (
-        <Pressable
-          style={styles.colUltimaEntradaHeader}
-          onPress={handleUltimaEntradaSortPress}
-          hitSlop={8}>
-          <Text
-            style={[
-              styles.tableHeaderText,
-              styles.colUltimaEntradaHeaderText,
-              sortField === 'ultimaEntrada' && styles.tableHeaderTextActive,
-            ]}>
-            {ultimaEntradaHeaderLabel}
-          </Text>
-        </Pressable>
-      ) : (
-        <Text style={[styles.tableHeaderText, styles.colUltimaEntradaHeaderText, styles.colUltimaEntradaHeaderStatic]}>
-          Última Entrada
-        </Text>
-      )}
+      <Text style={[styles.tableHeaderText, styles.colActions]}>Ações</Text>
+      <Text style={[styles.tableHeaderText, styles.colUltimaEntrada]}>Última Entrada</Text>
     </View>
   );
 
-  const currentUserId = user.id;
-
-  function renderListItem({ item }: { item: GestorUsuarioListItem }) {
-    const isCurrentUser = item.usersId === currentUserId;
-
-    return (
-      <GestorUsuarioListItemRow
-        usuario={item}
-        isCurrentUser={isCurrentUser}
-        showDeleteButton={canManageSelectedAcademia}
-        showSocioColumn={showSocioColumn}
-        showComplementoColumn={showComplementoColumn}
-        showAdministradorColumn={isAdministrador}
-        tableWidth={tableMinWidth}
-        disabled={isActionRunning}
-        onApprovePress={() => openAction('approve', item)}
-        onBlockPress={() => void handleBlockPress(item)}
-        onGestorPress={() =>
-          openAction(item.gestor ? 'unset-gestor' : 'gestor', item)
-        }
-        onProfessorPress={() =>
-          openAction(item.professor ? 'unset-professor' : 'professor', item)
-        }
-        onDeletePress={() => openAction('delete', item)}
-        onContactPress={() => handleContactPress(item)}
-      />
-    );
-  }
-
-  const listElement = (
-    <FlatList
-      style={[styles.list, { width: tableMinWidth }]}
-      data={showList ? usuarios : []}
-      keyExtractor={(item) => String(item.userslocalId)}
-      ListHeaderComponent={showList ? tableHeader : null}
-      renderItem={renderListItem}
-      contentContainerStyle={[styles.scrollContent, { minWidth: tableMinWidth }]}
-      refreshControl={
-        <RefreshControl
-          refreshing={isRefreshing}
-          onRefresh={() => void fetchUsuarios({ refreshing: true })}
-          tintColor={COLORS.blue}
-          colors={[COLORS.blue]}
-        />
-      }
-      showsVerticalScrollIndicator={false}
-    />
-  );
-
   function renderMainContent() {
-    if (isLoadingAcademias) {
-      return (
-        <View style={styles.centerContent}>
-          <ActivityIndicator size="large" color={COLORS.blue} />
-        </View>
-      );
-    }
-
-    if (academiasLoadError) {
-      return (
-        <View style={styles.centerContent}>
-          <Text style={styles.errorText}>{academiasLoadError}</Text>
-          <Pressable style={styles.retryButton} onPress={() => void fetchAvailableAcademias()}>
-            <Text style={styles.retryText}>Tentar novamente</Text>
-          </Pressable>
-        </View>
-      );
-    }
-
-    if (!isAdministrador && availableAcademias.length === 0) {
+    if (!canAccess) {
       return (
         <View style={styles.centerContent}>
           <Text style={styles.emptyText}>{CLUB_ADMIN_MESSAGES.permission}</Text>
-        </View>
-      );
-    }
-
-    if (academiaLoadError) {
-      return (
-        <View style={styles.centerContent}>
-          <Text style={styles.errorText}>{academiaLoadError}</Text>
-        </View>
-      );
-    }
-
-    if (!canManageSelectedAcademia) {
-      return (
-        <View style={styles.centerContent}>
-          <Text style={styles.emptyText}>{LISTA_USUARIOS_GESTOR_MESSAGES.permission}</Text>
         </View>
       );
     }
@@ -712,44 +325,59 @@ export function ListaUsuariosGestorScreen() {
 
     return (
       <AdminTableScrollContainer
-        minWidth={tableMinWidth}
-        centerWhenScreenWiderThan={GESTOR_USUARIOS_TABLE_CENTER_MIN_WIDTH}>
-        {listElement}
+        minWidth={TABLE_MIN_WIDTH}
+        centerWhenScreenWiderThan={WEB_MAX_CONTENT_WIDTH}>
+        <FlatList
+          style={[styles.list, { width: TABLE_MIN_WIDTH }]}
+          data={showList ? usuarios : []}
+          keyExtractor={(item) => String(item.userslocalId)}
+          ListHeaderComponent={showList ? tableHeader : null}
+          renderItem={({ item }) => (
+            <GestorUsuarioListItemRow
+              usuario={item}
+              isCurrentUser={item.usersId === currentUserId}
+              tableWidth={TABLE_MIN_WIDTH}
+              disabled={isActionRunning}
+              onApprovePress={() => openAction('approve', item)}
+              onBlockPress={() => void handleBlockPress(item)}
+              onGestorPress={() => openAction(item.gestor ? 'unset-gestor' : 'gestor', item)}
+              onDeletePress={() => openAction('delete', item)}
+              onContactPress={() => setUsuarioContato(item)}
+            />
+          )}
+          contentContainerStyle={[styles.scrollContent, { minWidth: TABLE_MIN_WIDTH }]}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={() => void fetchUsuarios({ refreshing: true })}
+              tintColor={COLORS.blue}
+              colors={[COLORS.blue]}
+            />
+          }
+          showsVerticalScrollIndicator={false}
+        />
       </AdminTableScrollContainer>
     );
   }
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-      <WebScreenContainer maxWidth={WEB_MAX_WIDE_CONTENT_WIDTH} style={styles.screenContainer}>
+      <WebScreenContainer maxWidth={SCREEN_MAX_WIDTH} style={styles.screenContainer}>
         <ScreenHeader user={user} title={'Lista de\nUsuários'} />
         <ScreenHeaderDivider />
 
         <View style={styles.toolbar}>
-          {showAcademiaSelector ? (
-            <AcademiaSelector
-              academias={availableAcademias}
-              value={selectedAcademiaId}
-              onChange={setSelectedAcademiaId}
-              isLoading={isLoadingAcademias}
-              error={academiasLoadError}
-              onRetry={() => void fetchAvailableAcademias()}
-              disabled={isLoading && !isRefreshing}
-              label="Local"
-              placeholder="Selecione o local"
-              modalTitle="Selecione o local"
-            />
-          ) : selectedAcademia ? (
+          {currentAcademia?.nome ? (
             <View style={styles.readonlyLocalField}>
               <Text style={styles.readonlyLocalLabel}>Local</Text>
-              <Text style={styles.readonlyLocalValue}>{selectedAcademia.nome}</Text>
+              <Text style={styles.readonlyLocalValue}>{currentAcademia.nome}</Text>
             </View>
           ) : null}
 
           <GestorUsuarioStatusFilter
             value={statusFilter}
             onChange={setStatusFilter}
-            disabled={(isLoading && !isRefreshing) || !canManageSelectedAcademia}
+            disabled={(isLoading && !isRefreshing) || !canAccess}
           />
 
           <TextInput
@@ -760,7 +388,7 @@ export function ListaUsuariosGestorScreen() {
             placeholderTextColor={COLORS.muted}
             autoCapitalize="none"
             autoCorrect={false}
-            editable={canManageSelectedAcademia}
+            editable={canAccess}
           />
 
           <Text style={styles.countText}>Quantidade de Usuários: {totalCount}</Text>
@@ -769,62 +397,46 @@ export function ListaUsuariosGestorScreen() {
         <View style={styles.listContainer}>{renderMainContent()}</View>
 
         <ExcluirCadastroModal
+          visible={moradorParaBloquear != null}
+          title={LISTA_USUARIOS_GESTOR_MESSAGES.blockTitle}
+          message={
+            moradorParaBloquear
+              ? `Deseja bloquear ${moradorParaBloquear.nome}?`
+              : LISTA_USUARIOS_GESTOR_MESSAGES.blockMessage
+          }
+          confirmLabel="Bloquear"
+          confirmDestructive
+          isDeleting={isActionRunning}
+          errorMessage={blockError}
+          onClose={() => {
+            if (!isActionRunning) {
+              setMoradorParaBloquear(null);
+              setBlockError(null);
+            }
+          }}
+          onConfirm={() => void confirmBlock()}
+        />
+
+        <ExcluirCadastroModal
           visible={pendingAction != null}
-          title={modalCopy.title}
-          message={modalCopy.message}
-          confirmLabel={modalCopy.confirmLabel}
-          confirmDestructive={modalCopy.confirmDestructive}
+          title={pendingCopy.title}
+          message={pendingCopy.message}
+          confirmLabel={pendingCopy.confirmLabel}
+          confirmDestructive={pendingCopy.confirmDestructive}
           isDeleting={isActionRunning}
           errorMessage={actionError}
-          onClose={closeActionModal}
-          onConfirm={() => void handleConfirmAction()}
-        />
-
-        <UsuarioSuspensaoTipoModal
-          visible={isSuspensaoTipoVisible}
-          isSubmitting={isActionRunning}
-          onClose={closeSuspensaoModals}
-          onSelectTotal={() => void handleSuspensaoTotal()}
-          onSelectAtividade={handleSuspensaoAtividadeSelect}
-        />
-
-        <UsuarioSuspensaoAtividadeModal
-          visible={isSuspensaoAtividadeVisible}
-          usuario={usuarioSuspensao}
-          academiasId={selectedAcademiaId}
-          authToken={authToken}
-          isSubmitting={isActionRunning}
-          errorMessage={suspensaoError}
-          onClose={closeSuspensaoModals}
-          onConfirm={(params) => void handleSuspensaoAtividadeConfirm(params)}
+          onClose={closeAction}
+          onConfirm={() => void confirmPendingAction()}
         />
 
         <UsuarioContatoModal
-          visible={isContatoModalVisible}
-          usuario={
-            usuarioContato
-              ? {
-                  id: usuarioContato.usersId,
-                  userslocalId: usuarioContato.userslocalId,
-                  nome: usuarioContato.nome,
-                  foto: null,
-                  telefoneLimpo: usuarioContato.telefoneLimpo,
-                }
-              : null
-          }
+          visible={usuarioContato != null}
+          usuario={contatoUsuario}
           photoSize={120}
           showPhone
-          allowPhotoChange
           authToken={authToken}
-          loadPhotoOnOpen
-          showComplementoField={showComplementoField}
-          showSocioTituloField={showSocioTituloField}
-          complemento={usuarioContato?.complemento ?? ''}
-          socioTitulo={usuarioContato?.socio ?? ''}
-          allowFieldEdit={canManageSelectedAcademia}
-          onSaveExtraFields={handleUsuarioExtraFieldsUpdated}
-          onPhotoUpdated={handleUsuarioPhotoUpdated}
-          onClose={handleCloseContatoModal}
+          loadPhotoFromUsersId
+          onClose={() => setUsuarioContato(null)}
         />
       </WebScreenContainer>
     </SafeAreaView>
@@ -851,7 +463,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 12,
     paddingBottom: 24,
   },
   toolbar: {
@@ -893,7 +504,16 @@ const styles = StyleSheet.create({
     color: COLORS.navy,
     backgroundColor: COLORS.background,
   },
-  tableHeader: TABLE_HEADER_STYLE,
+  tableHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: GESTOR_USUARIOS_TABLE_COLUMN_GAP,
+    paddingVertical: 10,
+    paddingHorizontal: GESTOR_USUARIOS_TABLE_HORIZONTAL_PADDING / 2,
+    backgroundColor: COLORS.highlight,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
   tableHeaderText: {
     fontSize: 13,
     fontWeight: '700',
@@ -901,48 +521,30 @@ const styles = StyleSheet.create({
   },
   colNome: {
     flexShrink: 0,
-  },
-  colNomeHeader: {
-    flexShrink: 0,
-    justifyContent: 'center',
+    overflow: 'hidden',
   },
   colTelefone: {
-    width: 130,
+    width: GESTOR_USUARIOS_TELEFONE_COLUMN_WIDTH,
     flexShrink: 0,
   },
-  colSocio: {
+  colEndereco: {
     flexShrink: 0,
-  },
-  colComplemento: {
-    flexShrink: 0,
+    overflow: 'hidden',
   },
   colFlag: {
-    width: 42,
+    width: GESTOR_USUARIOS_FLAG_COLUMN_WIDTH,
     flexShrink: 0,
     textAlign: 'center',
   },
   colActions: {
-    width: 140,
+    width: GESTOR_USUARIOS_ACTIONS_COLUMN_WIDTH,
     flexShrink: 0,
     textAlign: 'center',
   },
-  colActionsCompact: {
-    width: 106,
-  },
-  colUltimaEntradaHeader: {
-    width: 120,
+  colUltimaEntrada: {
+    width: GESTOR_USUARIOS_ULTIMA_ENTRADA_COLUMN_WIDTH,
     flexShrink: 0,
-    justifyContent: 'center',
-  },
-  colUltimaEntradaHeaderStatic: {
-    width: 120,
-    flexShrink: 0,
-  },
-  colUltimaEntradaHeaderText: {
-    textAlign: 'left',
-  },
-  tableHeaderTextActive: {
-    color: COLORS.blue,
+    textAlign: 'center',
   },
   centerContent: {
     flex: 1,

@@ -5,6 +5,7 @@ import {
   normalizeRecordId,
   readAcademiaId,
   readPersonName,
+  readEndereco,
   readString,
   readUserId,
 } from '@/utils/normalize-api-fields';
@@ -87,7 +88,7 @@ function mergeAuthMeUserAndVinculo(raw: Record<string, unknown>): Record<string,
     aprovado: vinculoWithoutId.aprovado,
     bloqueado: vinculoWithoutId.bloqueado,
     excluido: vinculoWithoutId.excluido ?? userWithoutPassword.excluido,
-    complemento: vinculoWithoutId.complemento ?? userWithoutPassword.complemento,
+    endereco: readEndereco(vinculoWithoutId, userWithoutPassword),
   };
 }
 
@@ -114,7 +115,7 @@ function mergeUsersLocalFields(record: Record<string, unknown>): Record<string, 
       readString(record, ['telefoneLimpo']) ||
       readString(localRecord, ['telefoneLimpo', 'telefoneConfirmado', 'telefone']),
     academias_id: record.academias_id ?? localRecord.academias_id ?? localRecord.condominio_id,
-    complemento: record.complemento ?? localRecord.complemento,
+    endereco: readEndereco(record, localRecord),
     administrador: record.administrador ?? localRecord.administrador,
     gestor: record.gestor ?? effectiveRoles.gestor,
     professor: record.professor ?? effectiveRoles.professor,
@@ -152,7 +153,7 @@ function mergeNestedUserFields(record: Record<string, unknown>): Record<string, 
       aprovado: merged.aprovado ?? nestedRecord.aprovado,
       bloqueado: merged.bloqueado ?? nestedRecord.bloqueado,
       matricula: merged.matricula ?? nestedRecord.matricula ?? nestedRecord.socioTitulo,
-      complemento: merged.complemento ?? nestedRecord.complemento,
+      endereco: readEndereco(merged, nestedRecord),
       ultimaPublicidadeData:
         merged.ultimaPublicidadeData ?? nestedRecord.ultimaPublicidadeData,
     };
@@ -243,7 +244,7 @@ export function normalizeUserFromApi(raw: unknown): User {
     bloqueado: normalizeBoolean(record.bloqueado),
     cienteCancelamento: normalizeBoolean(record.cienteCancelamento),
     matricula: readString(record, ['matricula', 'socioTitulo']),
-    complemento: readString(record, ['complemento']),
+    endereco: readEndereco(record, nestedUsers),
     ultimaPublicidadeData:
       typeof record.ultimaPublicidadeData === 'number'
         ? record.ultimaPublicidadeData

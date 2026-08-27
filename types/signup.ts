@@ -20,7 +20,7 @@ export type SignupFoneRequest = {
   telefoneLimpo: string;
   password: string;
   matricula: string;
-  complemento: string;
+  endereco: string;
   condominio_id: number;
   /** URL pública da foto; no cadastro fica vazio e a API preenche a partir de fotoUpload. */
   Foto: string;

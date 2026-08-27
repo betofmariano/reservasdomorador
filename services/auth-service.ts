@@ -355,7 +355,8 @@ export async function buildSignupFoneFormData(data: SignupFoneRequest): Promise<
   formData.append('telefoneLimpo', data.telefoneLimpo);
   formData.append('password', data.password);
   formData.append('matricula', data.matricula);
-  formData.append('complemento', data.complemento);
+  formData.append('endereco', data.endereco);
+  formData.append('complemento', data.endereco);
   formData.append('condominio_id', String(condominioId));
   formData.append(SIGNUP_FORM_FIELDS.foto, data.Foto);
   formData.append(

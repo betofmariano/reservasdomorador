@@ -26,6 +26,38 @@ export function normalizePhotoUrl(foto: string | null | undefined): string | nul
   return trimmed;
 }
 
+/** Lê o campo texto `Foto` da tabela users. */
+export function readUsersTableFotoText(payload: unknown): string | null {
+  if (!payload || typeof payload !== 'object') {
+    return null;
+  }
+
+  const candidates: unknown[] = [payload];
+  const record = payload as Record<string, unknown>;
+
+  for (const key of ['user', 'users', 'item']) {
+    const nested = record[key];
+
+    if (nested && typeof nested === 'object' && !Array.isArray(nested)) {
+      candidates.push(nested);
+    }
+  }
+
+  for (const candidate of candidates) {
+    if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) {
+      continue;
+    }
+
+    const value = (candidate as Record<string, unknown>).Foto;
+
+    if (typeof value === 'string' && value.trim()) {
+      return normalizePhotoUrl(value);
+    }
+  }
+
+  return null;
+}
+
 export function readPhotoUrlFromUnknown(value: unknown): string | null {
   if (typeof value === 'string') {
     return normalizePhotoUrl(value);

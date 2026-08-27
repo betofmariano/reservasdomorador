@@ -9,6 +9,8 @@ import {
   ViewStyle,
 } from 'react-native';
 
+import { MATCHPOINT_COLORS } from '@/constants/theme';
+
 type AppLogoProps = {
   size?: 'default' | 'large';
   style?: StyleProp<ImageStyle>;
@@ -26,24 +28,59 @@ export const APP_LOGO_TAP_HINT = 'Toque no logo para ir ao início';
 /** @deprecated Use APP_LOGO_TAP_HINT */
 export const MATCHPLACE_LOGO_TAP_HINT = APP_LOGO_TAP_HINT;
 
-const LOGO_SOURCE = require('@/assets/images/logo-reservasdomorador.png');
-
-/** Largura / altura do logotipo completo (símbolo + texto). */
-const LOGO_ASPECT_RATIO = 311 / 421;
-
-const SIZES = {
-  default: { width: 96, height: Math.round(96 / LOGO_ASPECT_RATIO) },
-  large: { width: 176, height: Math.round(176 / LOGO_ASPECT_RATIO) },
+const LOGO_ICON_SOURCE = require('@/assets/images/logo-reservasdomorador-icon.png');
+const LOGO_WORDMARK_COLOR = '#352359';
+const SIZE_WIDTHS = {
+  default: 96,
+  large: 176,
 } as const;
 
+function readStyleWidth(style: StyleProp<ImageStyle> | undefined, fallback: number): number {
+  const flattened = StyleSheet.flatten(style);
+  const width = flattened && typeof flattened === 'object' ? flattened.width : undefined;
+  return typeof width === 'number' ? width : fallback;
+}
+
+function omitSize(style: ImageStyle | undefined): ImageStyle | undefined {
+  if (!style) {
+    return undefined;
+  }
+
+  const { width: _width, height: _height, ...rest } = style;
+  return rest;
+}
+
 export function AppLogo({ size = 'default', style }: AppLogoProps) {
+  const width = readStyleWidth(style, SIZE_WIDTHS[size]);
+  const fontSize = Math.max(10, Math.round(width / 6.4));
+  const extraStyle = omitSize(StyleSheet.flatten(style));
+
   return (
-    <Image
-      source={LOGO_SOURCE}
-      style={[styles.logo, SIZES[size], style]}
-      accessibilityLabel="Reservas do Morador"
-      resizeMode="contain"
-    />
+    <View
+      style={[styles.mark, extraStyle, { width }]}
+      accessibilityRole="image"
+      accessibilityLabel="Reservas do Morador">
+      <Image
+        source={LOGO_ICON_SOURCE}
+        style={[styles.icon, { width, height: width }]}
+        resizeMode="contain"
+      />
+      <Text
+        style={[
+          styles.wordmark,
+          {
+            width,
+            fontSize,
+            lineHeight: Math.round(fontSize * 1.22),
+          },
+        ]}
+        numberOfLines={2}
+        adjustsFontSizeToFit
+        minimumFontScale={0.75}
+        maxFontSizeMultiplier={1.15}>
+        Reservas do{'\n'}Morador
+      </Text>
+    </View>
   );
 }
 
@@ -75,8 +112,20 @@ export function AppLogoHomeLink({
 export const MatchPlaceLogoHomeLink = AppLogoHomeLink;
 
 const styles = StyleSheet.create({
-  logo: {
-    alignSelf: 'center',
+  mark: {
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  icon: {
+    backgroundColor: 'transparent',
+  },
+  wordmark: {
+    marginTop: 4,
+    color: LOGO_WORDMARK_COLOR,
+    fontWeight: '800',
+    textAlign: 'center',
+    letterSpacing: -0.3,
+    includeFontPadding: false,
   },
   homeLinkContent: {
     alignItems: 'center',
@@ -86,7 +135,7 @@ const styles = StyleSheet.create({
     maxWidth: 140,
     fontSize: 11,
     lineHeight: 14,
-    color: '#5C6475',
+    color: MATCHPOINT_COLORS.muted,
     textAlign: 'center',
   },
 });

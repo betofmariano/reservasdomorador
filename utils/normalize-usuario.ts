@@ -4,9 +4,11 @@ import {
   normalizeUserLocalFromApi,
 } from '@/utils/normalize-user-local';
 import {
+  readEndereco,
   readPersonPhoto,
   readString,
   readUserId,
+  unwrapApiList,
 } from '@/utils/normalize-api-fields';
 import { stripPhoneDigits } from '@/utils/phone-mask';
 
@@ -36,10 +38,9 @@ export function normalizeUsersLocalApiRecord(raw: unknown): UsersLocalApiRecord 
       ? (record._users as Record<string, unknown>)
       : null;
   const telefoneLimpo = readUsersLocalTelefoneLimpo(record);
-  const complemento =
-    association.complemento.trim() ||
-    readString(record, ['complemento']) ||
-    (nestedUser ? readString(nestedUser, ['complemento']) : '');
+  const endereco =
+    association.endereco.trim() ||
+    readEndereco(record, nestedUser);
 
   return {
     id: association.id,
@@ -57,9 +58,10 @@ export function normalizeUsersLocalApiRecord(raw: unknown): UsersLocalApiRecord 
       association.socioTitulo.trim() ||
       readString(record, ['socioTitulo', 'matricula']) ||
       null,
-    complemento: complemento || null,
+    endereco: endereco || null,
     _users: nestedUser
       ? {
+          nome: association.nome || readString(nestedUser, ['nome']) || null,
           Foto: readString(nestedUser, ['Foto', 'foto']) || null,
           foto: readPersonPhoto(nestedUser) || null,
           telefoneConfirmado:
@@ -67,7 +69,7 @@ export function normalizeUsersLocalApiRecord(raw: unknown): UsersLocalApiRecord 
           telefoneLimpo: readString(nestedUser, ['telefoneLimpo']) || telefoneLimpo || null,
           email: readString(nestedUser, ['email']) || null,
           matricula: readString(nestedUser, ['matricula', 'socioTitulo']) || null,
-          complemento: complemento || null,
+          endereco: endereco || null,
           gestor: association.gestor,
           professor: association.professor,
           administrador: association.administrador,
@@ -78,11 +80,9 @@ export function normalizeUsersLocalApiRecord(raw: unknown): UsersLocalApiRecord 
 }
 
 export function normalizeUsersLocalApiRecords(raw: unknown): UsersLocalApiRecord[] {
-  if (!Array.isArray(raw)) {
-    return [];
-  }
+  const items = Array.isArray(raw) ? raw : unwrapApiList(raw);
 
-  return raw
+  return items
     .map((item) => normalizeUsersLocalApiRecord(item))
     .filter((item): item is UsersLocalApiRecord => item !== null);
 }

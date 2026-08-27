@@ -96,7 +96,6 @@ function RootLayoutNav() {
         <Stack.Screen name="resumo-publicidade" />
         <Stack.Screen name="aprovar-publicidade" />
         <Stack.Screen name="lista-usuarios-gestor" />
-        <Stack.Screen name="lista-usuarios-suspensos" />
         <Stack.Screen name="configuracao-local" />
         <Stack.Screen name="cadastro-atividades" />
         <Stack.Screen name="cadastro-horarios" />

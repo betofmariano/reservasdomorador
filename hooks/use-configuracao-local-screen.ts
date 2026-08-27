@@ -20,7 +20,8 @@ import {
   LOCAL_CONFIG_MESSAGES,
   validateAcademiaForm,
 } from '@/utils/academia-form';
-import { canManageAcademia, filterAcademiasForConfiguration } from '@/utils/club-config';
+import { canManageAcademia, getManagedAcademiaIdsForUser } from '@/utils/club-config';
+import { sortByClubNome } from '@/utils/club-sort';
 import { readAcademiaRegulamentoUrl } from '@/utils/normalize-academia';
 
 type UseConfiguracaoLocalScreenParams = {
@@ -69,21 +70,12 @@ export function useConfiguracaoLocalScreen({
       return true;
     }
 
-    return (
-      permissions.podeGerirLocal &&
-      effectiveAcademiasId === loadedAcademia.id &&
-      canManageAcademia(user, loadedAcademia.id, associations)
-    );
-  }, [
-    associations,
-    effectiveAcademiasId,
-    loadedAcademia,
-    permissions.administrador,
-    permissions.podeAcessarConfiguracaoLocal,
-    user,
-  ]);
+    return canManageAcademia(user, loadedAcademia.id, associations);
+  }, [associations, loadedAcademia, permissions.administrador, user]);
 
-  const showClubSelector = isAdministrador && availableClubs.length > 0;
+  const showClubSelector =
+    (isAdministrador && availableClubs.length > 0) ||
+    (!isAdministrador && availableClubs.length > 1);
 
   const hasChanges = useMemo(
     () => hasAcademiaFormChanges(values, originalValues),
@@ -105,17 +97,12 @@ export function useConfiguracaoLocalScreen({
     setClubsLoadError(null);
 
     try {
-      const [academias, userAssociations] = await Promise.all([
-        getAcademiasForConfiguration(authToken),
-        isAdministrador ? Promise.resolve([]) : getUserLocalAssociations(user.id),
-      ]);
-
       if (isAdministrador) {
-        const filtered = filterAcademiasForConfiguration(user, academias, []);
+        const academias = await getAcademiasForConfiguration(authToken);
         setAssociations([]);
-        setAvailableClubs(filtered as unknown as Club[]);
+        setAvailableClubs(academias as unknown as Club[]);
         setSelectedClubId((current) => {
-          if (current && filtered.some((club) => club.id === current)) {
+          if (current && academias.some((club) => club.id === current)) {
             return current;
           }
 
@@ -124,22 +111,39 @@ export function useConfiguracaoLocalScreen({
         return;
       }
 
-      if (!effectiveAcademiasId || !permissions.podeAcessarConfiguracaoLocal) {
-        setAssociations([]);
-        setAvailableClubs([]);
-        setSelectedClubId(null);
-        return;
-      }
-
-      const filtered = filterAcademiasForConfiguration(user, academias, userAssociations).filter(
-        (club) => club.id === effectiveAcademiasId,
+      const userAssociations = await getUserLocalAssociations(user.id, authToken);
+      const managedIds = getManagedAcademiaIdsForUser(user, userAssociations);
+      const managedAcademias = sortByClubNome(
+        (
+          await Promise.all(
+            managedIds.map(async (academiaId) => {
+              try {
+                return await getAcademiaById(academiaId, authToken);
+              } catch {
+                return null;
+              }
+            }),
+          )
+        ).filter((academia): academia is Academia => academia != null),
       );
 
-      setAssociations(
-        userAssociations.filter((association) => association.academias_id === effectiveAcademiasId),
-      );
-      setAvailableClubs(filtered as unknown as Club[]);
-      setSelectedClubId(filtered[0]?.id ?? null);
+      setAssociations(userAssociations);
+      setAvailableClubs(managedAcademias as unknown as Club[]);
+      setSelectedClubId((current) => {
+        if (current && managedAcademias.some((club) => club.id === current)) {
+          return current;
+        }
+
+        if (managedAcademias.length === 1) {
+          return managedAcademias[0].id;
+        }
+
+        if (effectiveAcademiasId && managedAcademias.some((club) => club.id === effectiveAcademiasId)) {
+          return effectiveAcademiasId;
+        }
+
+        return managedAcademias[0]?.id ?? null;
+      });
     } catch (error) {
       if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
         await onUnauthorized();
@@ -158,7 +162,6 @@ export function useConfiguracaoLocalScreen({
     isAdministrador,
     isContextLoading,
     onUnauthorized,
-    permissions.podeAcessarConfiguracaoLocal,
     user,
   ]);
 

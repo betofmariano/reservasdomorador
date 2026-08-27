@@ -38,7 +38,7 @@ export function GestorUsuarioStatusFilter({
 
       <ClubSelectionModal
         visible={isOpen}
-        title="Filtrar usuários"
+        title="Filtrar moradores"
         maxHeight="70%"
         onClose={() => setIsOpen(false)}>
         {GESTOR_USUARIO_STATUS_FILTER_OPTIONS.map((option) => (

@@ -22,16 +22,3 @@ export type CreateUsersBloqueadosPayload = {
   dias: number;
 };
 
-export type ListaUsuariosSuspensosStatusFilter = 'todos' | 'ativos' | 'encerrados';
-
-export type ListaUsuariosSuspensosOrdem = 'data_final' | 'nome' | 'atividade';
-
-export type ListaUsuariosSuspensosOrdemOption = {
-  value: ListaUsuariosSuspensosOrdem;
-  label: string;
-};
-
-export type ListaUsuariosSuspensosStatusOption = {
-  value: ListaUsuariosSuspensosStatusFilter;
-  label: string;
-};

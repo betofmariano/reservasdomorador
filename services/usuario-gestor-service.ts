@@ -1,9 +1,7 @@
 import {
-  buildUsersLocalAprovarPath,
   buildUsersLocalBloqueioPath,
   buildUsersLocalDeletePath,
   buildUsersLocalGestorPath,
-  buildUsersLocalProfessorPath,
   buildUsersLocalItemPath,
   buildUsersItemPath,
 } from '@/constants/api';
@@ -45,11 +43,7 @@ export async function approveUsuarioRecords(
   userslocalId: number,
   authToken: string,
 ): Promise<UsersLocalApiRecord | null> {
-  return authPatchRequest<UsersLocalApiRecord | null>(
-    buildUsersLocalAprovarPath(userslocalId),
-    authToken,
-    {},
-  );
+  return updateUsersLocalRecord(userslocalId, { aprovado: true }, authToken);
 }
 
 export async function setUsersLocalBlocked(
@@ -92,18 +86,6 @@ export async function setGestorUsuarioRecords(
 ): Promise<UsersLocalApiRecord | null> {
   return authPatchRequest<UsersLocalApiRecord | null>(
     buildUsersLocalGestorPath(userslocalId, gestor),
-    authToken,
-    {},
-  );
-}
-
-export async function setProfessorUsuarioRecords(
-  userslocalId: number,
-  professor: boolean,
-  authToken: string,
-): Promise<UsersLocalApiRecord | null> {
-  return authPatchRequest<UsersLocalApiRecord | null>(
-    buildUsersLocalProfessorPath(userslocalId, professor),
     authToken,
     {},
   );
