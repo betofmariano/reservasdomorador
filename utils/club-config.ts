@@ -294,12 +294,8 @@ export function canAccessAcademiaConfiguration(
   academias: Academia[],
   associations: UserLocalAssociation[] = [],
 ): boolean {
-  if (isUserAdministrador(user) || isUserGestor(user)) {
-    return true;
-  }
-
-  if (canShowAdministracaoEntryFromAssociations(user, associations)) {
-    return true;
+  if (!isUserAdministrador(user)) {
+    return false;
   }
 
   return filterAcademiasForConfiguration(user, academias, associations).length > 0;

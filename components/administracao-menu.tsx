@@ -52,6 +52,10 @@ export function AdministracaoMenu({ user, access }: AdministracaoMenuProps) {
   const gestaoItems = useMemo(
     () =>
       CLUB_ADMIN_ITEMS.filter((item) => {
+        if (item.route === '/configuracao-local') {
+          return isAdministrador;
+        }
+
         if (isAdministrador) {
           return true;
         }

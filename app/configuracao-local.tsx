@@ -71,24 +71,15 @@ export default function ConfiguracaoLocalScreen() {
   });
 
   useEffect(() => {
-    if (isAuthLoading || !user || isLoadingClubs) {
+    if (isAuthLoading || !user) {
       return;
     }
 
-    if (!isAdministrador && availableClubs.length === 0 && !clubsLoadError) {
+    if (!isAdministrador) {
       showToast(LOCAL_CONFIG_MESSAGES.permissionView, { variant: 'error' });
       router.replace('/');
     }
-  }, [
-    availableClubs.length,
-    clubsLoadError,
-    isAdministrador,
-    isAuthLoading,
-    isLoadingClubs,
-    router,
-    showToast,
-    user,
-  ]);
+  }, [isAdministrador, isAuthLoading, router, showToast, user]);
 
   useEffect(() => {
     if (!clubLoadError || clubLoadError === LOCAL_CONFIG_MESSAGES.loadError) {

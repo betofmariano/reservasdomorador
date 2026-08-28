@@ -58,7 +58,7 @@ export function AcademiaConfigForm({
       <Text style={styles.sectionTitle}>Parâmetros</Text>
 
       <View style={[styles.switchGrid, useTwoColumns && styles.switchGridWide]}>
-        <View style={styles.switchColumn}>
+        <View style={[styles.switchColumn, useTwoColumns && styles.switchColumnWide]}>
           <ClubFormSwitch
             label="Título de sócio"
             value={values.tituloSocio}
@@ -79,7 +79,7 @@ export function AcademiaConfigForm({
           />
         </View>
 
-        <View style={styles.switchColumn}>
+        <View style={[styles.switchColumn, useTwoColumns && styles.switchColumnWide]}>
           <ClubFormSwitch
             label="Complemento"
             value={values.complemento}
@@ -150,14 +150,19 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   switchGrid: {
-    gap: 0,
+    width: '100%',
   },
   switchGridWide: {
     flexDirection: 'row',
+    alignItems: 'flex-start',
     gap: 12,
   },
   switchColumn: {
+    width: '100%',
+  },
+  switchColumnWide: {
     flex: 1,
+    width: 'auto',
   },
   regulamentoButton: {
     marginTop: 16,

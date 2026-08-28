@@ -13,10 +13,10 @@ export const ADMINISTRACAO_SISTEMA_ROUTES = new Set([
   'lista-acessos',
   'lista-logins',
   'lista-logados',
+  'configuracao-local',
 ]);
 
 export const ADMINISTRACAO_CLUBE_ROUTES = new Set([
-  'configuracao-local',
   'cadastro-atividades',
   'cadastro-horarios',
   'lista-usuarios-gestor',

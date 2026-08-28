@@ -1,4 +1,5 @@
 import type { Atividade } from '@/types/atividade';
+import { normalizeTipoProgramacao } from '@/utils/atividade-form';
 import {
   normalizeBoolean,
   normalizeRecordId,
@@ -44,7 +45,7 @@ export function normalizeAtividadeFromApi(raw: unknown): Atividade | null {
     observacao: readString(record, ['observacao']),
     tolerancia: readNumber(record, ['tolerancia']),
     qtdeHorarios: readNumber(record, ['qtdeHorarios']),
-    tipoProgramacao: readString(record, ['tipoProgramacao']),
+    tipoProgramacao: normalizeTipoProgramacao(readString(record, ['tipoProgramacao'])),
     checkinAntes: readNumber(record, ['checkinAntes']),
     checkinDepois: readNumber(record, ['checkinDepois']),
     checkinSeguro: normalizeBoolean(record.checkinSeguro),

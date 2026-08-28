@@ -220,7 +220,7 @@ export function useCadastroAtividadesScreen({
     const duplicate = atividades.some(
       (item) =>
         item.id !== atividadeItem.id &&
-        item.atividade.localeCompare(payload.atividade, 'pt-BR', { sensitivity: 'accent' }) === 0,
+        item.atividade.localeCompare(payload.nome, 'pt-BR', { sensitivity: 'accent' }) === 0,
     );
 
     if (duplicate) {

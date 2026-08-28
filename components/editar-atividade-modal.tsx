@@ -15,11 +15,13 @@ import {
 import { AuthButton } from '@/components/auth-button';
 import { AuthTextField } from '@/components/auth-text-field';
 import { ClubFormSwitch } from '@/components/club-form-switch';
+import { FormSelectField } from '@/components/form-select-field';
 import { WEB_MAX_CONTENT_WIDTH } from '@/constants/web-layout';
 import { MATCHPOINT_COLORS } from '@/constants/theme';
 import type { Atividade } from '@/types/atividade';
 import type { AtividadeFormFieldErrors, AtividadeFormValues } from '@/utils/atividade-form';
 import {
+  TIPO_PROGRAMACAO_OPTIONS,
   buildUpdateAtividadePayload,
   createAtividadeFormValuesFromRecord,
   hasAtividadeFormChanges,
@@ -90,9 +92,11 @@ export function EditarAtividadeModal({
     }
   }
 
-  function handleNumericChange(field: keyof AtividadeFormValues, text: string) {
-    const sanitized = text.replace(/[^\d-]/g, '');
-    handleChange(field, sanitized as AtividadeFormValues[typeof field]);
+  function handleNumericChange(
+    field: 'limiteReservasSemana' | 'capacidade' | 'horasAntes',
+    text: string,
+  ) {
+    handleChange(field, text.replace(/[^\d-]/g, ''));
   }
 
   async function handleSubmit() {
@@ -145,6 +149,27 @@ export function EditarAtividadeModal({
                 />
                 {errors.atividade ? <Text style={styles.fieldError}>{errors.atividade}</Text> : null}
 
+                <FormSelectField
+                  label="Tipo de programação"
+                  value={values.tipoProgramacao}
+                  options={TIPO_PROGRAMACAO_OPTIONS}
+                  onChange={(value) => handleChange('tipoProgramacao', value)}
+                  placeholder="Selecione o tipo"
+                  disabled={isDisabled}
+                  error={errors.tipoProgramacao}
+                />
+
+                <AuthTextField
+                  label="Limite de reservas por semana"
+                  value={values.limiteReservasSemana}
+                  onChangeText={(text) => handleNumericChange('limiteReservasSemana', text)}
+                  keyboardType="number-pad"
+                  editable={!isDisabled}
+                />
+                {errors.limiteReservasSemana ? (
+                  <Text style={styles.fieldError}>{errors.limiteReservasSemana}</Text>
+                ) : null}
+
                 <AuthTextField
                   label="Capacidade"
                   value={values.capacidade}
@@ -165,87 +190,10 @@ export function EditarAtividadeModal({
                 />
                 {errors.horasAntes ? <Text style={styles.fieldError}>{errors.horasAntes}</Text> : null}
 
-                <AuthTextField
-                  label="Minutos de cancelamento"
-                  value={values.minutosCancelamento}
-                  onChangeText={(text) => handleNumericChange('minutosCancelamento', text)}
-                  keyboardType="number-pad"
-                  editable={!isDisabled}
-                />
-                {errors.minutosCancelamento ? (
-                  <Text style={styles.fieldError}>{errors.minutosCancelamento}</Text>
-                ) : null}
-
-                <AuthTextField
-                  label="Tolerância (minutos)"
-                  value={values.tolerancia}
-                  onChangeText={(text) => handleNumericChange('tolerancia', text)}
-                  keyboardType="numbers-and-punctuation"
-                  editable={!isDisabled}
-                />
-                {errors.tolerancia ? <Text style={styles.fieldError}>{errors.tolerancia}</Text> : null}
-
-                <AuthTextField
-                  label="Quantidade de horários"
-                  value={values.qtdeHorarios}
-                  onChangeText={(text) => handleNumericChange('qtdeHorarios', text)}
-                  keyboardType="number-pad"
-                  editable={!isDisabled}
-                />
-                {errors.qtdeHorarios ? (
-                  <Text style={styles.fieldError}>{errors.qtdeHorarios}</Text>
-                ) : null}
-
-                <AuthTextField
-                  label="Tipo de programação"
-                  value={values.tipoProgramacao}
-                  onChangeText={(text) => handleChange('tipoProgramacao', text)}
-                  editable={!isDisabled}
-                />
-
-                <AuthTextField
-                  label="Check-in antes (minutos)"
-                  value={values.checkinAntes}
-                  onChangeText={(text) => handleNumericChange('checkinAntes', text)}
-                  keyboardType="number-pad"
-                  editable={!isDisabled}
-                />
-                {errors.checkinAntes ? (
-                  <Text style={styles.fieldError}>{errors.checkinAntes}</Text>
-                ) : null}
-
-                <AuthTextField
-                  label="Check-in depois (minutos)"
-                  value={values.checkinDepois}
-                  onChangeText={(text) => handleNumericChange('checkinDepois', text)}
-                  keyboardType="number-pad"
-                  editable={!isDisabled}
-                />
-                {errors.checkinDepois ? (
-                  <Text style={styles.fieldError}>{errors.checkinDepois}</Text>
-                ) : null}
-
-                <AuthTextField
-                  label="Observação"
-                  value={values.observacao}
-                  onChangeText={(text) => handleChange('observacao', text)}
-                  multiline
-                  numberOfLines={4}
-                  editable={!isDisabled}
-                  style={styles.observacaoInput}
-                />
-
                 <ClubFormSwitch
-                  label="Controle de presença"
-                  value={values.controlePresenca}
-                  onValueChange={(value) => handleChange('controlePresenca', value)}
-                  disabled={isDisabled}
-                />
-
-                <ClubFormSwitch
-                  label="Check-in seguro"
-                  value={values.checkinSeguro}
-                  onValueChange={(value) => handleChange('checkinSeguro', value)}
+                  label="Tem unidades"
+                  value={values.temUnidades}
+                  onValueChange={(value) => handleChange('temUnidades', value)}
                   disabled={isDisabled}
                 />
               </ScrollView>
@@ -315,10 +263,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 32,
-  },
-  observacaoInput: {
-    minHeight: 96,
-    textAlignVertical: 'top',
   },
   fieldError: {
     marginTop: -6,

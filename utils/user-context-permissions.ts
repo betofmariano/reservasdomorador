@@ -117,7 +117,7 @@ export function buildUserContextPermissions(
     moduloAccessInput,
     'resumoPeriodo',
   );
-  const podeAcessarConfiguracaoLocal = podeGerirLocal;
+  const podeAcessarConfiguracaoLocal = administrador;
   const podeAcessarProgramacaoAtividades = canAccessModuloRelatorio(
     moduloAccessInput,
     'programacaoAtividades',

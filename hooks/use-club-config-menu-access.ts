@@ -7,5 +7,5 @@ export function useClubConfigMenuAccess(): boolean {
     return false;
   }
 
-  return permissions.administrador || permissions.podeGerirLocal;
+  return permissions.administrador;
 }

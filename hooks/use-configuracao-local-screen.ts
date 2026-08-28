@@ -7,11 +7,9 @@ import {
   getAcademiasForConfiguration,
   updateAcademia,
 } from '@/services/academias-service';
-import { getUserLocalAssociations } from '@/services/user-local-service';
 import type { Academia, AcademiaFormFieldErrors, AcademiaFormValues } from '@/types/academia';
 import type { Club } from '@/types/club';
 import type { User } from '@/types/user';
-import type { UserLocalAssociation } from '@/types/user-local';
 import {
   academiaToFormValues,
   buildUpdateAcademiaPayload,
@@ -20,8 +18,6 @@ import {
   LOCAL_CONFIG_MESSAGES,
   validateAcademiaForm,
 } from '@/utils/academia-form';
-import { canManageAcademia, getManagedAcademiaIdsForUser } from '@/utils/club-config';
-import { sortByClubNome } from '@/utils/club-sort';
 import { readAcademiaRegulamentoUrl } from '@/utils/normalize-academia';
 
 type UseConfiguracaoLocalScreenParams = {
@@ -37,9 +33,8 @@ export function useConfiguracaoLocalScreen({
   isAuthLoading,
   onUnauthorized,
 }: UseConfiguracaoLocalScreenParams) {
-  const { effectiveAcademiasId, permissions, isLoading: isContextLoading } = useUserContext();
+  const { permissions, isLoading: isContextLoading } = useUserContext();
   const [availableClubs, setAvailableClubs] = useState<Club[]>([]);
-  const [associations, setAssociations] = useState<UserLocalAssociation[]>([]);
   const [selectedClubId, setSelectedClubId] = useState<number | null>(null);
   const [loadedAcademia, setLoadedAcademia] = useState<Academia | null>(null);
 
@@ -62,20 +57,14 @@ export function useConfiguracaoLocalScreen({
   const isAdministrador = user?.administrador === true;
 
   const canManageSelectedClub = useMemo(() => {
-    if (!user || !loadedAcademia) {
+    if (!user || !loadedAcademia || !permissions.administrador) {
       return false;
     }
 
-    if (permissions.administrador) {
-      return true;
-    }
+    return true;
+  }, [loadedAcademia, permissions.administrador, user]);
 
-    return canManageAcademia(user, loadedAcademia.id, associations);
-  }, [associations, loadedAcademia, permissions.administrador, user]);
-
-  const showClubSelector =
-    (isAdministrador && availableClubs.length > 0) ||
-    (!isAdministrador && availableClubs.length > 1);
+  const showClubSelector = isAdministrador && availableClubs.length > 0;
 
   const hasChanges = useMemo(
     () => hasAcademiaFormChanges(values, originalValues),
@@ -97,52 +86,20 @@ export function useConfiguracaoLocalScreen({
     setClubsLoadError(null);
 
     try {
-      if (isAdministrador) {
-        const academias = await getAcademiasForConfiguration(authToken);
-        setAssociations([]);
-        setAvailableClubs(academias as unknown as Club[]);
-        setSelectedClubId((current) => {
-          if (current && academias.some((club) => club.id === current)) {
-            return current;
-          }
-
-          return null;
-        });
+      if (!isAdministrador) {
+        setAvailableClubs([]);
+        setSelectedClubId(null);
         return;
       }
 
-      const userAssociations = await getUserLocalAssociations(user.id, authToken);
-      const managedIds = getManagedAcademiaIdsForUser(user, userAssociations);
-      const managedAcademias = sortByClubNome(
-        (
-          await Promise.all(
-            managedIds.map(async (academiaId) => {
-              try {
-                return await getAcademiaById(academiaId, authToken);
-              } catch {
-                return null;
-              }
-            }),
-          )
-        ).filter((academia): academia is Academia => academia != null),
-      );
-
-      setAssociations(userAssociations);
-      setAvailableClubs(managedAcademias as unknown as Club[]);
+      const academias = await getAcademiasForConfiguration(authToken);
+      setAvailableClubs(academias as unknown as Club[]);
       setSelectedClubId((current) => {
-        if (current && managedAcademias.some((club) => club.id === current)) {
+        if (current && academias.some((club) => club.id === current)) {
           return current;
         }
 
-        if (managedAcademias.length === 1) {
-          return managedAcademias[0].id;
-        }
-
-        if (effectiveAcademiasId && managedAcademias.some((club) => club.id === effectiveAcademiasId)) {
-          return effectiveAcademiasId;
-        }
-
-        return managedAcademias[0]?.id ?? null;
+        return null;
       });
     } catch (error) {
       if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
@@ -156,18 +113,11 @@ export function useConfiguracaoLocalScreen({
     } finally {
       setIsLoadingClubs(false);
     }
-  }, [
-    authToken,
-    effectiveAcademiasId,
-    isAdministrador,
-    isContextLoading,
-    onUnauthorized,
-    user,
-  ]);
+  }, [authToken, isAdministrador, isContextLoading, onUnauthorized, user]);
 
   const fetchClubDetails = useCallback(
     async (clubId: number) => {
-      if (!user || !authToken) {
+      if (!user || !authToken || !permissions.administrador) {
         return;
       }
 
@@ -184,11 +134,6 @@ export function useConfiguracaoLocalScreen({
         const academia = await getAcademiaById(clubId, authToken);
 
         if (requestId !== clubRequestIdRef.current) {
-          return;
-        }
-
-        if (!canManageAcademia(user, academia.id, associations)) {
-          setClubLoadError(LOCAL_CONFIG_MESSAGES.permissionView);
           return;
         }
 
@@ -215,7 +160,7 @@ export function useConfiguracaoLocalScreen({
         }
       }
     },
-    [associations, authToken, onUnauthorized, user],
+    [authToken, onUnauthorized, permissions.administrador, user],
   );
 
   useEffect(() => {
@@ -252,11 +197,7 @@ export function useConfiguracaoLocalScreen({
   }
 
   async function saveLocalConfiguration(): Promise<string | null> {
-    if (!user || !authToken || !loadedAcademia || !selectedClubId) {
-      return LOCAL_CONFIG_MESSAGES.permissionSave;
-    }
-
-    if (!canManageAcademia(user, loadedAcademia.id, associations)) {
+    if (!user || !authToken || !loadedAcademia || !selectedClubId || !permissions.administrador) {
       return LOCAL_CONFIG_MESSAGES.permissionSave;
     }
 

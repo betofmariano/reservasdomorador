@@ -46,6 +46,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: '#FFFFFF',
     marginBottom: 10,
+    flexShrink: 0,
   },
   label: {
     flex: 1,

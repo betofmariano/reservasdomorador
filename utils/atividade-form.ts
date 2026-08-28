@@ -1,18 +1,22 @@
 import type { Atividade } from '@/types/atividade';
 
+export const TIPO_PROGRAMACAO_VALUES = ['mensalPorSemana', 'semanal', 'diaria'] as const;
+
+export type TipoProgramacao = (typeof TIPO_PROGRAMACAO_VALUES)[number];
+
+export const TIPO_PROGRAMACAO_OPTIONS: Array<{ value: TipoProgramacao; label: string }> = [
+  { value: 'mensalPorSemana', label: 'Mensal por semana' },
+  { value: 'semanal', label: 'Semanal' },
+  { value: 'diaria', label: 'Diária' },
+];
+
 export type AtividadeFormValues = {
   atividade: string;
+  tipoProgramacao: TipoProgramacao | '';
+  limiteReservasSemana: string;
+  temUnidades: boolean;
   capacidade: string;
-  controlePresenca: boolean;
   horasAntes: string;
-  minutosCancelamento: string;
-  observacao: string;
-  tolerancia: string;
-  qtdeHorarios: string;
-  tipoProgramacao: string;
-  checkinAntes: string;
-  checkinDepois: string;
-  checkinSeguro: boolean;
 };
 
 export type AtividadeFormFieldErrors = Partial<Record<keyof AtividadeFormValues, string>> & {
@@ -20,18 +24,12 @@ export type AtividadeFormFieldErrors = Partial<Record<keyof AtividadeFormValues,
 };
 
 export type UpdateAtividadePayload = {
-  atividade: string;
+  nome: string;
+  tipoProgramacao: TipoProgramacao;
+  limiteReservasSemana: number;
+  temUnidades: boolean;
   capacidade: number;
-  controlePresenca: boolean;
   horasAntes: number;
-  minutosCancelamento: number;
-  observacao: string;
-  tolerancia: number;
-  qtdeHorarios: number;
-  tipoProgramacao: string;
-  checkinAntes: number;
-  checkinDepois: number;
-  checkinSeguro: boolean;
 };
 
 function normalizeAtividadeName(value: string): string {
@@ -54,20 +52,54 @@ function parseIntegerField(value: string, label: string): { value: number | null
   return { value: parsed };
 }
 
+export function isTipoProgramacao(value: string): value is TipoProgramacao {
+  return (TIPO_PROGRAMACAO_VALUES as readonly string[]).includes(value);
+}
+
+export function normalizeTipoProgramacao(value: string | null | undefined): TipoProgramacao | '' {
+  const normalized = (value ?? '').trim();
+
+  if (!normalized) {
+    return '';
+  }
+
+  if (isTipoProgramacao(normalized)) {
+    return normalized;
+  }
+
+  const compact = normalized
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[\s_-]+/g, '');
+
+  if (compact === 'mensalporsemana') {
+    return 'mensalPorSemana';
+  }
+
+  if (compact === 'semanal') {
+    return 'semanal';
+  }
+
+  if (compact === 'diaria') {
+    return 'diaria';
+  }
+
+  return '';
+}
+
+export function getTipoProgramacaoLabel(value: TipoProgramacao | ''): string {
+  return TIPO_PROGRAMACAO_OPTIONS.find((option) => option.value === value)?.label ?? '';
+}
+
 export function createAtividadeFormValuesFromRecord(record: Atividade): AtividadeFormValues {
   return {
     atividade: record.atividade,
+    tipoProgramacao: normalizeTipoProgramacao(record.tipoProgramacao),
+    limiteReservasSemana: String(record.limiteReservasSemana),
+    temUnidades: record.temUnidades,
     capacidade: String(record.capacidade),
-    controlePresenca: record.controlePresenca,
     horasAntes: String(record.horasAntes),
-    minutosCancelamento: String(record.minutosCancelamento),
-    observacao: record.observacao,
-    tolerancia: String(record.tolerancia),
-    qtdeHorarios: String(record.qtdeHorarios),
-    tipoProgramacao: record.tipoProgramacao,
-    checkinAntes: String(record.checkinAntes),
-    checkinDepois: String(record.checkinDepois),
-    checkinSeguro: record.checkinSeguro,
   };
 }
 
@@ -79,14 +111,14 @@ export function validateAtividadeForm(values: AtividadeFormValues): AtividadeFor
     errors.atividade = 'Informe o nome da atividade.';
   }
 
+  if (!isTipoProgramacao(values.tipoProgramacao)) {
+    errors.tipoProgramacao = 'Selecione o tipo de programação.';
+  }
+
   const numericFields: Array<{ key: keyof AtividadeFormValues; label: string }> = [
+    { key: 'limiteReservasSemana', label: 'limite de reservas por semana' },
     { key: 'capacidade', label: 'capacidade' },
     { key: 'horasAntes', label: 'horas antes' },
-    { key: 'minutosCancelamento', label: 'minutos de cancelamento' },
-    { key: 'tolerancia', label: 'tolerância' },
-    { key: 'qtdeHorarios', label: 'quantidade de horários' },
-    { key: 'checkinAntes', label: 'check-in antes' },
-    { key: 'checkinDepois', label: 'check-in depois' },
   ];
 
   for (const field of numericFields) {
@@ -107,28 +139,21 @@ export function validateAtividadeForm(values: AtividadeFormValues): AtividadeFor
 }
 
 export function buildUpdateAtividadePayload(values: AtividadeFormValues): UpdateAtividadePayload {
+  const tipoProgramacao = isTipoProgramacao(values.tipoProgramacao)
+    ? values.tipoProgramacao
+    : 'mensalPorSemana';
+  const limiteReservasSemana =
+    parseIntegerField(values.limiteReservasSemana, 'limite de reservas por semana').value ?? 0;
   const capacidade = parseIntegerField(values.capacidade, 'capacidade').value ?? 0;
   const horasAntes = parseIntegerField(values.horasAntes, 'horas antes').value ?? 0;
-  const minutosCancelamento =
-    parseIntegerField(values.minutosCancelamento, 'minutos de cancelamento').value ?? 0;
-  const tolerancia = parseIntegerField(values.tolerancia, 'tolerância').value ?? 0;
-  const qtdeHorarios = parseIntegerField(values.qtdeHorarios, 'quantidade de horários').value ?? 0;
-  const checkinAntes = parseIntegerField(values.checkinAntes, 'check-in antes').value ?? 0;
-  const checkinDepois = parseIntegerField(values.checkinDepois, 'check-in depois').value ?? 0;
 
   return {
-    atividade: normalizeAtividadeName(values.atividade),
+    nome: normalizeAtividadeName(values.atividade),
+    tipoProgramacao,
+    limiteReservasSemana,
+    temUnidades: values.temUnidades,
     capacidade,
-    controlePresenca: values.controlePresenca,
     horasAntes,
-    minutosCancelamento,
-    observacao: values.observacao.trim(),
-    tolerancia,
-    qtdeHorarios,
-    tipoProgramacao: values.tipoProgramacao.trim(),
-    checkinAntes,
-    checkinDepois,
-    checkinSeguro: values.checkinSeguro,
   };
 }
 
